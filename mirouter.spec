@@ -26,7 +26,7 @@ exe = EXE(pyz,
           a.zipfiles,
           a.datas,
           [],
-          name='test',#         打包后生成的文件名称（可自行修改）
+          name='mirouterui',#         打包后生成的文件名称（可自行修改）
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
