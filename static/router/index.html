@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIROUTER-UI</title>
+    <link rel="stylesheet" href="/css/mdui.css">
+    <script src="/js/mdui.js"></script>
+    <script src="/js/jquery.min.js"></script>
+
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+</head>
+
+<body class="mdui-theme-primary-blue-grey mdui-theme-accent-blue">
+    <script src="/js/echarts.min.js"></script>
+
+    <div class="mdui-drawer mdui-drawer-close" id="sidebar">
+        <div class="mdui-list" mdui-collapse="{accordion: true}">
+            <a href="/" class="mdui-list-item mdui-ripple">
+                <i class="mdui-list-item-icon mdui-icon material-icons">home</i>
+                <div class="mdui-list-item-content">首页</div>
+            </a>
+            <a href="/router/index.html" class="mdui-list-item mdui-ripple">
+                <i class="mdui-list-item-icon mdui-icon material-icons">router</i>
+                <div class="mdui-list-item-content">路由器状态</div>
+            </a>
+        </div>
+    </div>
+    <div class="mdui-appbar">
+        <div class="mdui-toolbar mdui-color-teal mdui-appbar-scroll-hide">
+            <a href="javascript:;" class="mdui-btn mdui-btn-icon" mdui-drawer="{target: '#sidebar'}">
+                <i class="mdui-icon material-icons">menu</i>
+            </a>
+            <a href="#" class="mdui-typo-headline" id="titletext">小米路由器</a>
+            <div class="mdui-toolbar-spacer"></div>
+            <a href="/" class="mdui-btn mdui-btn-icon">
+                <i class="mdui-icon material-icons">home</i>
+            </a>
+            <a href="javascript:location.reload();" class="mdui-btn mdui-btn-icon">
+                <i class="mdui-icon material-icons">refresh</i>
+            </a>
+        </div>
+    </div>
+    <div class="mdui-container">
+        <div class="mdui-card mdui-m-a-2">
+            <!-- 卡片标题 -->
+            <div class="mdui-card-header">
+                <img class="mdui-card-header-avatar" src="/img/router_r4a_101_on.png" />
+                <div class="mdui-card-header-title" id="platform">platform</div>
+                <div class="mdui-card-header-subtitle" id="router_name">name</div>
+                <div class="mdui-card-menu">
+                    <a href="/index.html">
+                        <i id="info-3" class="mdui-icon material-icons">home</i>
+                    </a>
+                </div>
+
+            </div>
+            <!-- 卡片内容 -->
+            <div class="mdui-card-content">
+                <!-- 网格布局 -->
+                <div class="mdui-row-xs-1 mdui-row-sm-2">
+                    <!-- CPU 使用率 -->
+                    <div class="mdui-col">
+                        <div class="mdui-typo-subheading-opacity">CPU 使用率</div>
+                        <div class="mdui-progress" id="cpu-used">
+                            <div class="mdui-progress-determinate mdui-color-indigo-400" style="width: 0%"></div>
+                        </div>
+                        <div class="mdui-typo-body-2-opacity" id="cpu-used-text">0%</div>
+                    </div>
+                    <!-- 内存使用率 -->
+                    <div class="mdui-col">
+                        <div class="mdui-typo-subheading-opacity" id="mem-used">内存使用率</div>
+                        <div class="mdui-progress" id="mem-used">
+                            <div class="mdui-progress-determinate mdui-color-pink-400" style="width: 0%"></div>
+                        </div>
+                        <div class="mdui-typo-body-2-opacity" id="mem-used-text">0%</div>
+                    </div>
+                </div>
+                <div id="status-chart" style="width: 100%; height: 300px;"></div>
+
+                <!-- 分割线 -->
+                <div class="mdui-divider gap"></div>
+                <div class="mdui-row-xs-1 mdui-row-sm-2">
+                    <!-- 网络上传速度 -->
+                    <div class="mdui-col">
+                        <div class="mdui-typo-subheading-opacity">上传速度</div>
+                        <span class="mdui-typo-body-2-opacity" id="uploadspeed">88GB/s</span>
+                        <div class="mdui-typo-subheading-opacity">最大上传速度</div>
+                        <span class="mdui-typo-body-2-opacity" id="maxuploadspeed">88GB/s</span>
+                    </div>
+                    <!-- 网络下载速度 -->
+                    <div class="mdui-col">
+                        <div class="mdui-typo-subheading-opacity">下载速度</div>
+                        <span class="mdui-typo-body-2-opacity" id="downloadspeed">88GB/s</span>
+                        <div class="mdui-typo-subheading-opacity">最大下载速度</div>
+                        <span class="mdui-typo-body-2-opacity" id="maxdownloadspeed">88GB/s</span>
+
+                    </div>
+                </div>
+                <div id="speed-chart" style="width: 100%; height: 300px;"></div>
+
+                <!-- 分割线 -->
+                <div class="mdui-divider gap"></div>
+                <!-- 总出入流量 -->
+                <div class="mdui-typo-subheading-opacity mdui-m-y-1">总出入流量</div>
+                <div class="mdui-row-xs-1 mdui-row-sm-2">
+                    <div class="mdui-col">
+
+                        <span class="mdui-typo-body-2-opacity">上传：</span>
+                        <span id="uploadtotal">88GB</span>
+                    </div>
+                    <div class="mdui-col">
+
+                        <span class="mdui-typo-body-2-opacity">下载：</span>
+                        <span id="downloadtotal">88GB</span>
+                    </div>
+                    <div id="traffic-chart" style="width: 100%; height: 300px;"></div>
+                </div>
+                <div class="mdui-divider gap"></div>
+                <div class="mdui-typo-subheading-opacity mdui-m-y-1">工厂信息</div>
+                <div class="mdui-row-xs-1 mdui-row-sm-2">
+                    <div class="mdui-col">
+                        <span class="mdui-typo-body-2-opacity">是否初始化：</span>
+                        <span id="isinit">load</span>
+                    </div>
+                    <div class="mdui-col">
+                        <span class="mdui-typo-body-2-opacity">是否为<strong>4K Block</strong>：</span>
+                        <span id="is4kblock">load</span>
+                    </div>
+                    <!-- <div class="mdui-col">
+                                <span class="mdui-typo-body-2-opacity">是否开启安全启动：</span>
+                                <span id="issecboot">load</span>
+                            </div> -->
+                    <div class="mdui-col">
+                        <span class="mdui-typo-body-2-opacity">是否开启<strong>UART</strong>：</span>
+                        <span id="isuart">load</span>
+                    </div>
+                    <div class="mdui-col">
+                        <span class="mdui-typo-body-2-opacity">是否为工厂模式：</span>
+                        <span id="isfacmode">load</span>
+                    </div>
+                    <div class="mdui-col">
+                        <span class="mdui-typo-body-2-opacity">是否开启<strong>SSH</strong>：</span>
+                        <span id="isssh">load</span>
+                    </div>
+                    <div class="mdui-col">
+                        <span class="mdui-typo-body-2-opacity">是否开启<strong>Telnet</strong>：</span>
+                        <span id="istelnet">load</span>
+                    </div>
+                    <div class="mdui-col">
+                        <span class="mdui-typo-body-2-opacity">网卡<strong>wlan0</strong>上的 SSID：</span>
+                        <span id="wl0_ssid">load</span>
+                    </div>
+                    <div class="mdui-col">
+                        <span class="mdui-typo-body-2-opacity">网卡<strong>wlan1</strong>上的 SSID：</span>
+                        <span id="wl1_ssid">load</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <script src="/js/router.js"></script>
+    </div>
+    <!-- <footer id="footer">
+    <span>Made by <a href="https://www.hzchu.top/">Thun888</a>.Version:23/8/4[1]</layout></span>
+</footer> -->
+    <style>
+        body {
+            --bg: url("/img/milogo.png");
+            background-image: linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8)), var(--bg);
+            background-repeat: repeat;
+            /* background-size: cover; */
+            background-attachment: fixed;
+        }
+        
+        @font-face {
+            font-family: Roboto;
+            src: url(/fonts/roboto/Roboto-Medium.woff2) format('woff2')
+        }
+        
+        .gap {
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+        /* #footer {
+        text-align: center;
+        bottom: 0;
+        width: 100%;
+        height: 30px;
+        background: rgba(97, 104, 90, 0.337);
+        line-height: 2;
+        z-index: 999;
+        margin-top: 40px;
+    } */
+        
+        a {
+            text-decoration: none;
+            /* 去除默认的下划线 */
+            outline: none;
+            /* 去除旧版浏览器的点击后的外虚线框 */
+            color: #000;
+            /* 去除默认的颜色和点击后变化的颜色 */
+        }
+    </style>
+    <script>
+        // 定义一个函数，接受一个数字作为参数，表示B/s
+        function convertSpeed(bytesPerSecond) {
+            bytesPerSecond = parseFloat(bytesPerSecond);
+            // 定义一个数组，存储不同的速度单位
+            var units = ["B/s", "KB/s", "MB/s", "GB/s", "TB/s"];
+            // 定义一个变量，存储当前的速度值
+            var speed = bytesPerSecond;
+            // 定义一个变量，存储当前的速度单位的索引
+            var index = 0;
+            // 循环，直到速度值小于1024或者达到最大的单位
+            while (speed >= 1024 && index < units.length - 1) {
+                // 将速度值除以1024，得到更高的单位的值
+                speed = speed / 1024;
+                // 将索引加一，得到更高的单位的索引
+                index++;
+            }
+            // 返回速度值和对应的单位，保留两位小数
+            return speed.toFixed(2) + " " + units[index];
+        }
+
+        function convertbytes(bytes, mode) {
+            bytes = parseFloat(bytes);
+            // 定义一个数组，存储不同的速度单位
+            var units = ["B", "KB", "MB", "GB", "TB"];
+            // 定义一个变量，存储当前的速度值
+            var speed = bytes;
+            // 定义一个变量，存储当前的速度单位的索引
+            var index = 0;
+            // 循环，直到速度值小于1024或者达到最大的单位
+            while (speed >= 1024 && index < units.length - 1) {
+                // 将速度值除以1024，得到更高的单位的值
+                speed = speed / 1024;
+                // 将索引加一，得到更高的单位的索引
+                index++;
+            }
+            if (mode === 1) {
+                return speed.toFixed(3);
+            } else {
+                return speed.toFixed(3) + " " + units[index];
+            }
+            // 返回速度值和对应的单位，保留3位小数
+        }
+
+        function togb(num) {
+            return (num / 1024 / 1024 / 1024).toFixed(2)
+        }
+
+        function roundToOneDecimal(num) {
+            // 保留一位小数
+            return num.toFixed(1);
+        }
+
+        function convertSeconds(seconds) {
+            // 定义一些常量，表示一分钟、一小时、一天的秒数
+            const SECONDS_IN_MINUTE = 60;
+            const SECONDS_IN_HOUR = 60 * SECONDS_IN_MINUTE;
+            const SECONDS_IN_DAY = 24 * SECONDS_IN_HOUR;
+
+            // 定义一个变量，存储转换后的结果
+            let result = "";
+
+            // 判断秒数是否大于等于一天
+            if (seconds >= SECONDS_IN_DAY) {
+                // 计算天数，并添加到结果中，带上单位
+                let days = Math.floor(seconds / SECONDS_IN_DAY);
+                result += days + "天";
+                // 更新秒数，减去已转换的部分
+                seconds -= days * SECONDS_IN_DAY;
+            }
+
+            // 判断秒数是否大于等于一小时
+            if (seconds >= SECONDS_IN_HOUR) {
+                // 计算小时数，并添加到结果中，带上单位
+                let hours = Math.floor(seconds / SECONDS_IN_HOUR);
+                result += hours + "小时";
+                // 更新秒数，减去已转换的部分
+                seconds -= hours * SECONDS_IN_HOUR;
+            }
+
+            // 判断秒数是否大于等于一分钟
+            if (seconds >= SECONDS_IN_MINUTE) {
+                // 计算分钟数，并添加到结果中，带上单位
+                let minutes = Math.floor(seconds / SECONDS_IN_MINUTE);
+                result += minutes + "分钟";
+                // 更新秒数，减去已转换的部分
+                seconds -= minutes * SECONDS_IN_MINUTE;
+            }
+
+            // 判断秒数是否大于零
+            if (seconds > 0) {
+                // 直接添加到结果中，带上单位
+                result += seconds + "秒";
+            }
+
+            // 返回结果
+            return result;
+        }
+
+        function getbooleantype(type) {
+            // 0/1/2/3  有线 / 2.4G wifi / 5G wifi / guest wifi
+            switch (type) {
+                case 0:
+                    return "否";
+                case 1:
+                    return "是";
+                default:
+                    return "未知";
+            }
+        }
+        // 转换布尔值为是/否
+        function boolTostring(value) {
+            if (value) {
+                return '是';
+            } else {
+                return '否';
+            }
+        }
+    </script>
+</body>
