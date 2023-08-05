@@ -23,6 +23,7 @@
 #### 下载
 
 WIN：从[release](https://github.com/thun888/mirouter-ui/releases/tag/zip)下载压缩包
+
 Linux: fork项目仓库，并安装相应依赖
 
 #### 获取key和iv
