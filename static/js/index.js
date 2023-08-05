@@ -26,7 +26,7 @@ function updateStatus() {
     });
 }
 
-function check_internet_connect() {
+function get_router_name() {
     $.get('/api/xqsystem/router_name', function(data) {
         if (data.code === 0) {
             router_name = data.routerName
@@ -35,7 +35,7 @@ function check_internet_connect() {
     });
 }
 
-function get_router_name() {
+function check_internet_connect() {
     $.get('/api/xqsystem/internet_connect', function(data) {
         if (data.connect === 1) {
             mdui.snackbar({
@@ -49,6 +49,7 @@ $(function() {
     // 初次加载状态
     updateStatus();
     check_internet_connect();
+    get_router_name();
     // 每5秒刷新状态
     setInterval(function() {
         updateStatus();
