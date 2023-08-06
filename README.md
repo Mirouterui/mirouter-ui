@@ -24,7 +24,7 @@
 
 #### 下载
 
-从[Release](https://github.com/thun888/mirouter-ui/releases/tag/zip)下载二进制文件
+从[Release](https://github.com/thun888/mirouter-ui/releases/tag/zip)下载二进制文件和`config.txt`
 
 如果路由器有足够空间可以下载`mipsle`版本的部署在路由器上（理论上）
 
@@ -34,8 +34,8 @@
 
 ![image](https://github.com/thun888/mirouter-ui/assets/63234268/87dd59bd-dc9f-4a9f-b22f-d5fd9a9d047a)
 
-复制双引号里的内容粘贴到配置文件中，并填上密码（路由器后台密码）
-![image](https://github.com/thun888/mirouter-ui/assets/63234268/3aed12f2-255e-4b30-a765-eb8b4a963995)
+复制双引号里的内容粘贴到`config.txt`对应栏目中，并填上密码（路由器后台密码）
+![image](https://github.com/thun888/mirouter-ui/assets/63234268/b581d6b9-c56e-4ce4-a356-167c6856cdf9)
 
 > ip可以根据实际情况修改
 
