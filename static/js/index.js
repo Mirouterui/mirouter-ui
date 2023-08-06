@@ -30,7 +30,7 @@ function get_router_name() {
     $.get('/api/xqsystem/router_name', function(data) {
         if (data.code === 0) {
             router_name = data.routerName
-            $
+            $("#router_name").text(router_name)
         }
     });
 }
@@ -55,6 +55,7 @@ $(function() {
         updateStatus();
     }, 5000);
 });
+
 
 
 function listdevices(dev) {

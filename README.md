@@ -2,6 +2,8 @@
 
 将本程序部署在小米路由器的网络环境中，配置完成即可食用
 
+后端基于Golang，多平台兼容
+
 ### 图片展示
 
 #### 首页
@@ -22,9 +24,9 @@
 
 #### 下载
 
-WIN：从[release](https://github.com/thun888/mirouter-ui/releases/tag/zip)下载压缩包
+从[Release](https://github.com/thun888/mirouter-ui/releases/tag/zip)下载二进制文件
 
-Linux: fork项目仓库，并安装相应依赖
+如果路由器有足够空间可以下载`mipsle`版本的部署在路由器上（理论上）
 
 #### 获取key和iv
 
@@ -32,20 +34,18 @@ Linux: fork项目仓库，并安装相应依赖
 
 ![image](https://github.com/thun888/mirouter-ui/assets/63234268/87dd59bd-dc9f-4a9f-b22f-d5fd9a9d047a)
 
-复制双引号里的内容粘贴到配置文件中，并填上密码
+复制双引号里的内容粘贴到配置文件中，并填上密码（路由器后台密码）
 ![image](https://github.com/thun888/mirouter-ui/assets/63234268/3aed12f2-255e-4b30-a765-eb8b4a963995)
 
 > ip可以根据实际情况修改
 
-然后双击`mirouterui.exe`运行（linux执行`python3 ./mirouter.py`）
+然后运行程序
 
 如果遇到防火墙提示请勾上两个勾并确定
 
 ![image](https://github.com/thun888/mirouter-ui/assets/63234268/fc6a7515-6e65-48be-9bbd-1de1eac41146)
 
-此时命令窗口中会显示网页的访问地址，但只有以`路由器分配的IP地址开头的`才能被其他设备访问
-
-![image](https://github.com/thun888/mirouter-ui/assets/63234268/5e05fde4-a62d-4f92-93af-6020242c36e3)
+此时命令窗口中会显示网页的访问端口，使用设备的`ip地址+端口号(6789)`行访问
 
 ### 后台运行
 

@@ -14,6 +14,8 @@
 </head>
 
 <body class="mdui-theme-primary-blue-grey mdui-theme-accent-blue">
+    <script src="/js/echarts.min.js"></script>
+
     <div class="mdui-drawer mdui-drawer-close" id="sidebar">
     <div class="mdui-list" mdui-collapse="{accordion: true}">
         <a href="/" class="mdui-list-item mdui-ripple">
@@ -41,68 +43,35 @@
         </a>
     </div>
 </div>
-            <style>
-                body {
-                    background-color: #f5f5f5;
-                }
-                
-                .not-found-container {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    justify-content: center;
-                    height: 100vh;
-                }
-                
-                .not-found-title {
-                    margin-top: 20px;
-                    font-size: 3rem;
-                    font-weight: 300;
-                    color: #333;
-                    text-align: center;
-                }
-                
-                .not-found-text {
-                    margin-top: 10px;
-                    font-size: 1.5rem;
-                    font-weight: 300;
-                    color: #666;
-                    text-align: center;
-                }
-                
-                .not-found-button {
-                    margin-top: 20px;
-                    background-color: #fdb62f;
-                    color: #000;
-                    border: none;
-                    border-radius: 6px;
-                    border: 2px solid #000;
-                    font-size: 1.2rem;
-                    font-weight: 500;
-                    padding: 10px 20px;
-                    transition: all 0.3s;
-                }
-                
-                .not-found-button:hover {
-                    background-color: #fdb62f;
-                    cursor: pointer;
-                }
-                
-                #error {
-                    width: 30vw;
-                    max-height: 150px;
-                    margin-bottom: 2rem;
-                }
-            </style>
             <div class="mdui-container">
-                <div class="content">
-                    <div class="not-found-container">
-                        <h1 class="not-found-title">404</h1>
-                        <p class="not-found-text">啊哦，您访问的页面不存在</p>
-                        <button class="not-found-button mdui-ripple" onclick="window.history.back()">返回上一页</button>
+                <div class="mdui-card mdui-m-a-2">
+                    <!-- 卡片标题 -->
+                    <div class="mdui-card-header">
+                        <img class="mdui-card-header-avatar" id="deviceicon" src="/img/device.png" />
+                        <div class="mdui-card-header-title" id="devicename">loading</div>
+                        <div class="mdui-card-header-subtitle" id="mac">mac</div>
+
                     </div>
+                    <!-- 卡片内容 -->
+                    <div class="mdui-card-content">
+                        <div class="mdui-col">
+                            <span class="mdui-typo-body-2-opacity">设备原始名称：</span>
+                            <span id="device_oname">load</span>
+                        </div>
+                        <div class="mdui-textfield mdui-textfield-floating-label">
+                            <label class="mdui-textfield-label">New Name</label>
+                            <input class="mdui-textfield-input" id="new_name" />
+                        </div>
+                    </div>
+                    <div class="mdui-row">
+                        <div class="mdui-text-right" style="padding: 20px 20px;">
+                            <button class="mdui-btn mdui-btn-raised mdui-ripple" id="doit">OK</button>
+                        </div>
+                    </div>
+                    <script src="/js/deviceedit.js"></script>
                 </div>
             </div>
+
             <!-- <footer id="footer">
     <span>Made by <a href="https://www.hzchu.top/">Thun888</a>.Version:23/8/4[1]</layout></span>
 </footer> -->
