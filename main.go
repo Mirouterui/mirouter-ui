@@ -9,9 +9,10 @@ import (
 	"math/rand"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
-	"os"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
@@ -78,7 +79,9 @@ func updateToken() {
 	resp, err := http.PostForm(ourl, params)
 	if err != nil {
 		fmt.Println("登录失败，请检查配置或路由器状态")
-		return
+		fmt.Println("30秒后退出程序")
+		time.Sleep(30 * time.Second)
+		os.Exit(1)
 	}
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
@@ -88,8 +91,10 @@ func updateToken() {
 	if code == 0 {
 		// fmt.Println(result)
 		token = result["token"].(string)
-	}else{
+	} else {
 		fmt.Println("登录失败，请检查配置")
+		fmt.Println("30秒后退出程序")
+		time.Sleep(30 * time.Second)
 		os.Exit(1)
 	}
 
@@ -126,9 +131,8 @@ func main() {
 
 	var contentHandler = echo.WrapHandler(http.FileServer(http.FS(static)))
 	var contentRewrite = middleware.Rewrite(map[string]string{"/*": "/static/$1"})
-	
-	e.GET("/*", contentHandler, contentRewrite)
 
+	e.GET("/*", contentHandler, contentRewrite)
 
 	updateToken()
 	go func() {
