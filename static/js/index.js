@@ -11,6 +11,8 @@ function updateStatus() {
         downloadtotal = convertbytes(data.wan.download)
         cpuload = roundToOneDecimal(data.cpu.load * 100) + '%'
         memusage = roundToOneDecimal(data.mem.usage * 100) + '%'
+        devicenum = data.count.all
+        devicenum_now = data.count.online
         $('#platform').text("小米路由器" + data.hardware.platform);
         $('#cpu-used .mdui-progress-determinate').css('width', cpuload);
         $('#cpu-used-text').text(cpuload);
@@ -22,7 +24,19 @@ function updateStatus() {
         $('#maxdownloadspeed').text(maxdownloadspeed)
         $('#uploadtotal').text(uploadtotal)
         $('#downloadtotal').text(downloadtotal)
+        $("#devicenum").text(devicenum)
+        $("#devicenum_now").text(devicenum_now)
         listdevices(data.dev)
+    });
+}
+
+function get_messages() {
+    $.get('/api/misystem/messages', function(data) {
+        if (data.code != 0) {
+            mdui.snackbar({
+                message: '路由器有新信息，请登录路由器后台查看'
+            });
+        }
     });
 }
 
@@ -50,6 +64,7 @@ $(function() {
     updateStatus();
     check_internet_connect();
     get_router_name();
+    get_messages();
     // 每5秒刷新状态
     setInterval(function() {
         updateStatus();

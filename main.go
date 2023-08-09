@@ -11,7 +11,7 @@ import (
 	"net/url"
 	"strings"
 	"time"
-
+	"os"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
@@ -83,33 +83,45 @@ func updateToken() {
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
 	var result map[string]interface{}
-	// if result["code"] != 0 {
-	// 	fmt.Println("登录失败，请检查配置")
-	// 	return
-	// }
 	json.Unmarshal(body, &result)
-	// fmt.Println(result)
-	token = result["token"].(string)
+	code := int(result["code"].(float64))
+	if code == 0 {
+		// fmt.Println(result)
+		token = result["token"].(string)
+	}else{
+		fmt.Println("登录失败，请检查配置")
+		os.Exit(1)
+	}
+
 }
 
 func main() {
 	e := echo.New()
-	e.Use(middleware.Logger())
+	// e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	e.GET("/api/:apipath", func(c echo.Context) error {
-		url := fmt.Sprintf("http://%s/cgi-bin/luci/;stok=%s/api/%s", ip, token, c.Param("apipath"))
-		resp, err := http.Get(url)
-		if err != nil {
+		apipath := c.Param("apipath")
+		switch apipath {
+		case "misystem/status", "misystem/devicelist", "xqsystem/router_name", "xqsystem/internet_connect", "xqsystem/fac_info", "misystem/messages":
+			url := fmt.Sprintf("http://%s/cgi-bin/luci/;stok=%s/api/%s", ip, token, apipath)
+			resp, err := http.Get(url)
+			if err != nil {
+				return c.JSON(http.StatusOK, map[string]interface{}{
+					"code": 1101,
+					"msg":  "MiRouterのapi调用出错，请检查配置或路由器状态",
+				})
+			}
+			defer resp.Body.Close()
+			body, _ := ioutil.ReadAll(resp.Body)
+			var result map[string]interface{}
+			json.Unmarshal(body, &result)
+			return c.JSON(http.StatusOK, result)
+		default:
 			return c.JSON(http.StatusOK, map[string]interface{}{
-				"code": 1101,
-				"msg":  "MiRouterのapi调用出错，请检查配置或路由器状态",
+				"code": 1102,
+				"msg":  "该api不支持免密调用",
 			})
 		}
-		defer resp.Body.Close()
-		body, _ := ioutil.ReadAll(resp.Body)
-		var result map[string]interface{}
-		json.Unmarshal(body, &result)
-		return c.JSON(http.StatusOK, result)
 	})
 
 	var contentHandler = echo.WrapHandler(http.FileServer(http.FS(static)))

@@ -33,3 +33,12 @@ GOOS=linux GOARCH=mipsle GOMIPS=softfloat go build main.go
 # mv main main_linux_mipsle
 upx --best -o mirouterui_linux_mipsle main
 rm main
+
+echo "Building darwin_amd64"
+GOOS=darwin GOARCH=amd64 go build main.go
+upx --best -o mirouterui_darwin_amd64 main
+echo "Building darwin_arm64"
+GOOS=darwin GOARCH=arm64 go build main.go
+upx --best -o mirouterui_darwin_arm64 main
+rm main
+

@@ -14,7 +14,12 @@ function updateStatus() {
         uploadtotal = convertbytes(data.wan.upload)
         downloadtotal = convertbytes(data.wan.download)
         cpuload = (data.cpu.load * 100).toFixed(2)
+        cpucore = data.cpu.core
+        cpufreq = data.cpu.hz
         memusage = (data.mem.usage * 100).toFixed(2)
+        memtotal = data.mem.total
+        memfreq = data.mem.hz
+        memtype = data.mem.type
         $('#platform').text("小米路由器" + data.hardware.platform);
         $('#mac').text(data.hardware.mac);
         $('#cpu-used .mdui-progress-determinate').css('width', cpuload + '%');
@@ -27,6 +32,11 @@ function updateStatus() {
         $('#maxdownloadspeed').text(maxdownloadspeed)
         $('#uploadtotal').text(uploadtotal)
         $('#downloadtotal').text(downloadtotal)
+        $("#cpu_core").text(cpucore)
+        $("#cpu_freq").text(cpufreq)
+        $("#mem_total").text(memtotal)
+        $("#mem_freq").text(memfreq)
+        $("#mem_type").text(memtype)
         pushdata(data.dev)
         cpu_data.push(cpuload);
         mem_data.push(memusage);
