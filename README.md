@@ -6,6 +6,8 @@
 
 已在小米路由器r1d,r4a,ra71上测试通过
 
+部分新路由无法获取cpu占用，如红米AX6000
+
 ### 图片展示
 
 #### 首页
@@ -26,7 +28,7 @@
 
 #### 下载
 
-从[Release](https://github.com/thun888/mirouter-ui/releases/tag/zip)下载二进制文件和`config.txt`
+从[Release](https://github.com/thun888/mirouter-ui/releases/)下载二进制文件和`config.txt`
 
 如果路由器有足够空间可以下载`mipsle`版本的部署在路由器上（理论上）
 

@@ -56,7 +56,7 @@ func init() {
 
 func createNonce() string {
 	typeVar := 0
-	deviceID := "fc:34:97:69:cc:06"
+	deviceID := "" //无效参数
 	timeVar := int(time.Now().Unix())
 	randomVar := rand.Intn(10000)
 	return fmt.Sprintf("%d_%s_%d_%d", typeVar, deviceID, timeVar, randomVar)
@@ -89,13 +89,12 @@ func newhashPassword(pwd string, nonce string, key string) string {
 func getrouterinfo() int {
 
 	// 发送 GET 请求
-	ourl := fmt.Sprintf("http://%s/cgi-bin/luci/api/xqsystem/login", ip)
+	ourl := fmt.Sprintf("http://%s/cgi-bin/luci/api/xqsystem/init_info", ip)
 	response, err := http.Get(ourl)
 	if err != nil {
 		return 0
 	}
 	defer response.Body.Close()
-
 	// 读取响应内容
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
@@ -112,18 +111,21 @@ func getrouterinfo() int {
 	// 检查 newEncryptMode
 	newEncryptMode, ok := data["newEncryptMode"].(float64)
 	if !ok {
+		fmt.Println("使用旧加密模式")
 		return 0
 	}
 
 	if newEncryptMode != 0 {
+		fmt.Println("使用新加密模式")
+		fmt.Println("当前路由器可能无法正常获取某些数据！")
 		return 1
 	}
-
 	return 0
 }
 func updateToken() {
 	fmt.Println("获取路由器信息...")
 	newEncryptMode := getrouterinfo()
+	// fmt.Println(newEncryptMode)
 	fmt.Println("更新token...")
 	nonce := createNonce()
 	var hashedPassword string
