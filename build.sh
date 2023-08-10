@@ -22,25 +22,25 @@ mv main.exe mirouterui_win_arm64.exe
 
 echo "Building linux_amd64"
 GOOS=linux GOARCH=amd64 go build main.go
-mv main main_linux_amd64
-upx --best -o mirouterui_linux_amd64_upx main_linux_amd64
+mv main mirouterui_linux_amd64
+upx --best -o mirouterui_linux_amd64_upx mirouterui_linux_amd64
 echo "Building linux_arm64"
 GOOS=linux GOARCH=arm64 go build main.go
-mv main main_linux_arm64
-upx --best -o mirouterui_linux_arm64_upx main_linux_arm64
+mv main mirouterui_linux_arm64
+upx --best -o mirouterui_linux_arm64_upx mirouterui_linux_arm64
 echo "Building linux_mipsle"
 GOOS=linux GOARCH=mipsle GOMIPS=softfloat go build main.go
-mv main main_linux_mipsle
-upx --best -o mirouterui_linux_mipsle_upx main_linux_mipsle
+mv main mirouterui_linux_mipsle
+upx --best -o mirouterui_linux_mipsle_upx mirouterui_linux_mipsle
 rm main
 
 echo "Building darwin_amd64"
 GOOS=darwin GOARCH=amd64 go build main.go
-mv main main_darwin_amd64
-upx --best -o mirouterui_darwin_amd64_upx main_darwin_amd64
+mv main mirouterui_darwin_amd64
+upx --best -o mirouterui_darwin_amd64_upx mirouterui_darwin_amd64
 echo "Building darwin_arm64"
 GOOS=darwin GOARCH=arm64 go build main.go
-mv main main_darwin_arm64
-upx --best -o mirouterui_darwin_arm64_upx main_darwin_arm64
+mv main mirouterui_darwin_arm64
+upx --best -o mirouterui_darwin_arm64_upx mirouterui_darwin_arm64
 rm main
 
