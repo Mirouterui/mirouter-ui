@@ -3,7 +3,6 @@ package main
 import (
 	"crypto/sha1"
 	"crypto/sha256"
-	"embed"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -13,7 +12,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -21,33 +19,48 @@ import (
 )
 
 var (
-	password string
-	key      string
-	iv       string
-	ip       string
-	token    string
+	password   string
+	key        string
+	iv         string
+	ip         string
+	token      string
+	debug      bool
+	port       int
+	routername string
+	hardware   string
 )
 
-//go:embed static/*
-var static embed.FS
+type Config struct {
+	Password string `json:"password"`
+	Key      string `json:"key"`
+	Iv       string `json:"iv"`
+	Ip       string `json:"ip"`
+	Debug    bool   `json:"debug"`
+	Port     int    `json:"port"`
+}
 
 func init() {
 	exePath, err := os.Executable()
 	if err != nil {
 		panic(err)
 	}
-	configPath := filepath.Join(filepath.Dir(exePath), "config.txt")
+	configPath := filepath.Join(filepath.Dir(exePath), "config.json")
 	fmt.Println(configPath)
 	data, err := os.ReadFile(configPath)
 	if err != nil {
 		panic(err)
 	}
-	config := string(data)
-	password = strings.Split(strings.Split(config, `password = "`)[1], `"`)[0]
-	key = strings.Split(strings.Split(config, `key = "`)[1], `"`)[0]
-	iv = strings.Split(strings.Split(config, `iv = "`)[1], `"`)[0]
-	ip = strings.Split(strings.Split(config, `ip = "`)[1], `"`)[0]
-
+	var config Config
+	err = json.Unmarshal(data, &config)
+	if err != nil {
+		panic(err)
+	}
+	password = config.Password
+	key = config.Key
+	iv = config.Iv
+	ip = config.Ip
+	debug = config.Debug
+	port = config.Port
 	// fmt.Println(password)
 	// fmt.Println(key)
 	// fmt.Println(iv)
@@ -107,23 +120,27 @@ func getrouterinfo() int {
 	if err != nil {
 		return 0
 	}
-
+	//提取routername
+	routername = data["routername"].(string)
+	hardware = data["hardware"].(string)
+	fmt.Println("路由器型号为：", hardware)
+	fmt.Println("路由器名称为：", routername)
 	// 检查 newEncryptMode
 	newEncryptMode, ok := data["newEncryptMode"].(float64)
 	if !ok {
-		fmt.Println("使用旧加密模式")
+		debugPrint("使用旧加密模式")
 		return 0
 	}
 
 	if newEncryptMode != 0 {
-		fmt.Println("使用新加密模式")
+		debugPrint("使用新加密模式")
 		fmt.Println("当前路由器可能无法正常获取某些数据！")
 		return 1
 	}
 	return 0
 }
 func updateToken() {
-	fmt.Println("获取路由器信息...")
+	debugPrint("获取路由器信息...")
 	newEncryptMode := getrouterinfo()
 	// fmt.Println(newEncryptMode)
 	fmt.Println("更新token...")
@@ -156,7 +173,7 @@ func updateToken() {
 	json.Unmarshal(body, &result)
 	code := int(result["code"].(float64))
 	if code == 0 {
-		fmt.Println("当前token为:", result["token"])
+		debugPrint("当前token为:" + fmt.Sprint(result["token"]))
 		token = result["token"].(string)
 	} else {
 		fmt.Println("登录失败，请检查配置")
@@ -167,6 +184,11 @@ func updateToken() {
 	}
 
 }
+func debugPrint(msg string) {
+	if debug == true { // 假设debug是一个全局变量
+		fmt.Println(msg) // 如果debug为true，就打印消息
+	}
+}
 
 func main() {
 	e := echo.New()
@@ -175,7 +197,9 @@ func main() {
 	e.GET("/api/:apipath", func(c echo.Context) error {
 		apipath := c.Param("apipath")
 		switch apipath {
-		case "misystem/status", "misystem/devicelist", "xqsystem/router_name", "xqsystem/internet_connect", "xqsystem/fac_info", "misystem/messages":
+		case "xqsystem/router_name":
+			return c.JSON(http.StatusOK, map[string]interface{}{"code": 0, "routerName": routername})
+		case "misystem/status", "misystem/devicelist", "xqsystem/internet_connect", "xqsystem/fac_info", "misystem/messages":
 			url := fmt.Sprintf("http://%s/cgi-bin/luci/;stok=%s/api/%s", ip, token, apipath)
 			resp, err := http.Get(url)
 			if err != nil {
@@ -197,10 +221,11 @@ func main() {
 		}
 	})
 
-	var contentHandler = echo.WrapHandler(http.FileServer(http.FS(static)))
-	var contentRewrite = middleware.Rewrite(map[string]string{"/*": "/static/$1"})
+	// var contentHandler = echo.WrapHandler(http.FileServer(http.FS(static)))
+	// var contentRewrite = middleware.Rewrite(map[string]string{"/*": "/static/$1"})
 
-	e.GET("/*", contentHandler, contentRewrite)
+	// e.GET("/*", contentHandler, contentRewrite)
+	e.Static("/", "static")
 
 	updateToken()
 	go func() {
@@ -209,5 +234,5 @@ func main() {
 		}
 	}()
 
-	e.Start(":6789")
+	e.Start(":" + fmt.Sprint(port))
 }

@@ -1,0 +1,9 @@
+{
+    "password": "your_password",
+    "key": "your_key",
+    "iv": "your_iv",
+    "ip": "192.168.31.1",
+    "port": 6789,
+    "debug": true
+
+}
