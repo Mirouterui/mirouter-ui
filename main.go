@@ -12,8 +12,10 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -52,15 +54,27 @@ func init() {
 		panic(err)
 	}
 	configPath := filepath.Join(filepath.Dir(exePath), "config.json")
-	fmt.Println(configPath)
+	debugPrint("配置文件路径为:" + configPath)
 	data, err := os.ReadFile(configPath)
 	if err != nil {
-		panic(err)
+		fmt.Println("未找到配置文件，正在下载")
+		resp, err := http.Get("https://mrui-api.hzchu.top/downloadconfig")
+		checkErr(err)
+		defer resp.Body.Close()
+		out, err := os.Create("config.json")
+		checkErr(err)
+		defer out.Close()
+		_, err = io.Copy(out, resp.Body)
+		checkErr(err)
+		fmt.Println("下载配置文件完成，请修改配置文件")
+		fmt.Println("5秒后退出程序")
+		time.Sleep(5 * time.Second)
+		os.Exit(1)
 	}
 	var config Config
 	err = json.Unmarshal(data, &config)
 	if err != nil {
-		panic(err)
+		fmt.Println("配置文件存在错误")
 	}
 	password = config.Password
 	key = config.Key
@@ -244,8 +258,8 @@ func updateToken() {
 	resp, err := http.PostForm(ourl, params)
 	if err != nil {
 		fmt.Println("登录失败，请检查配置或路由器状态")
-		fmt.Println("30秒后退出程序")
-		time.Sleep(30 * time.Second)
+		fmt.Println("5秒后退出程序")
+		time.Sleep(5 * time.Second)
 		os.Exit(1)
 	}
 	defer resp.Body.Close()
@@ -258,22 +272,23 @@ func updateToken() {
 		token = result["token"].(string)
 	} else {
 		fmt.Println("登录失败，请检查配置")
-		fmt.Println("30秒后退出程序")
+		fmt.Println("5秒后退出程序")
 		fmt.Println(string(body))
-		time.Sleep(30 * time.Second)
+		time.Sleep(5 * time.Second)
 		os.Exit(1)
 	}
 
 }
 func debugPrint(msg string) {
-	if debug == true { // 假设debug是一个全局变量
-		fmt.Println(msg) // 如果debug为true，就打印消息
+	if debug == true {
+		fmt.Println("[DEBUG]" + msg)
 	}
 }
-
 func main() {
 	e := echo.New()
-	// e.Use(middleware.Logger())
+	if debug == true {
+		e.Use(middleware.Logger())
+	}
 	e.Use(middleware.Recover())
 	e.GET("/api/:apipath", func(c echo.Context) error {
 		apipath := c.Param("apipath")
@@ -321,6 +336,13 @@ func main() {
 			updateToken()
 		}
 	}()
-
 	e.Start(":" + fmt.Sprint(port))
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		<-quit
+		e.Close()
+	}()
 }

@@ -1,4 +1,4 @@
-## Mirouter-ui |基于小米路由器API的展示面板
+## Mirouter-ui | 基于小米路由器API的展示面板
 
 将本程序部署在小米路由器的网络环境中，配置完成即可食用
 
@@ -6,7 +6,7 @@
 
 已在小米路由器r1d,r4a,ra71上测试通过
 
-部分新路由无法获取cpu占用，如红米AX6000
+部分新路由无法获取cpu占用，如红米AX6000。可在路由器上运行解决
 
 ### 图片展示
 
@@ -28,15 +28,15 @@
 
 #### 下载
 
-从[Release](https://github.com/thun888/mirouter-ui/releases/)下载二进制文件和`config.txt`
+从[Release](https://github.com/thun888/mirouter-ui/releases/)下载二进制文件
 
-如果路由器有足够（内存）空间可以下载对应架构版本的部署在路由器上
+> 可访问[镜像站](https://mrui-api.hzchu.top/down/)以获取更快的速度
+
+如果路由器有足够（内存）空间可以下载对应架构版本的部署在路由器上（ps:使用`uname -m`查看，若为armv7l,请使用armv5版本）
 
 ![image](https://github.com/Mirouterui/mirouter-ui/assets/63234268/5dfa3deb-0aab-4198-9170-5af1141b3746)
 
 
-
-> 如果自己新建config.txt千万不要新建成config.txt.txt
 
 #### 获取key和iv
 
@@ -44,10 +44,24 @@
 
 ![image](https://github.com/thun888/mirouter-ui/assets/63234268/87dd59bd-dc9f-4a9f-b22f-d5fd9a9d047a)
 
-复制双引号里的内容粘贴到`config.txt`对应栏目中，并填上密码（路由器后台密码）
+复制双引号里的内容粘贴到`config.json`对应栏目中，并填上密码（路由器后台密码）
 ![image](https://github.com/thun888/mirouter-ui/assets/63234268/b581d6b9-c56e-4ce4-a356-167c6856cdf9)
 
+> config.json 会在初次运行时自动下载
 > ip可以根据实际情况修改
+
+配置项：
+
+| 配置名     | 默认值       | 解释                                    |
+| ---------- | ------------ | --------------------------------------- |
+| password   |              | 路由器管理后台密码                      |
+| key        |              | 路由器管理后台key                       |
+| iv         |              | 路由器管理后台iv                        |
+| ip         | 192.168.31.1 | 路由器IP                                |
+| tiny       | false        | 启用后，不再下载静态文件                |
+| routerunit | false        | 启用后，程序通过`gopsutil`库获取CPU占用 |
+| port       | 6789         | 网页页面端口号                          |
+| debug      | true         | debug模式，建议在测试正常后关闭         |
 
 然后运行程序
 
