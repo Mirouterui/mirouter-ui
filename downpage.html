@@ -55,6 +55,7 @@
                 releaseDiv.innerHTML += `<p><strong>发行版本：</strong> \${data.tag_name}</p>`;
                 // releaseDiv.innerHTML += `<p><strong>发行名称：</strong> \${data.name}</p>`;
                 releaseDiv.innerHTML += `<p><strong>发行日期：</strong> \${new Date(data.published_at).toLocaleDateString()}</p>`;
+                releaseDiv.innerHTML += `<p><strong>发布说明：</strong> \${data.body}</p>`;
                 content.appendChild(releaseDiv);
                 data.assets.forEach(asset => {
                     let assetDiv = document.createElement('div');

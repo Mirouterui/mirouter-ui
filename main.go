@@ -18,6 +18,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/shirou/gopsutil/cpu"
 )
 
 var (
@@ -31,16 +32,18 @@ var (
 	routername string
 	hardware   string
 	tiny       bool
+	routerunit bool
 )
 
 type Config struct {
-	Password string `json:"password"`
-	Key      string `json:"key"`
-	Iv       string `json:"iv"`
-	Ip       string `json:"ip"`
-	Debug    bool   `json:"debug"`
-	Port     int    `json:"port"`
-	Tiny     bool   `json:"tiny"`
+	Password   string `json:"password"`
+	Key        string `json:"key"`
+	Iv         string `json:"iv"`
+	Ip         string `json:"ip"`
+	Debug      bool   `json:"debug"`
+	Port       int    `json:"port"`
+	Tiny       bool   `json:"tiny"`
+	Routerunit bool   `json:"routerunit"`
 }
 
 func init() {
@@ -134,6 +137,10 @@ func unzip(src, dest string) error {
 	}
 
 	return nil
+}
+func GetCpuPercent() float64 {
+	percent, _ := cpu.Percent(time.Second, false)
+	return percent[0] / 100
 }
 
 func checkErr(err error) {
@@ -286,6 +293,13 @@ func main() {
 			body, _ := io.ReadAll(resp.Body)
 			var result map[string]interface{}
 			json.Unmarshal(body, &result)
+
+			if routerunit || apipath == "misystem/status" {
+				cpuPercent := GetCpuPercent()
+				if cpu, ok := result["cpu"].(map[string]interface{}); ok {
+					cpu["load"] = cpuPercent
+				}
+			}
 			return c.JSON(http.StatusOK, result)
 		default:
 			return c.JSON(http.StatusOK, map[string]interface{}{
