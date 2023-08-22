@@ -3,7 +3,7 @@
     "key": "your_key",
     "iv": "your_iv",
     "ip": "192.168.31.1",
+    "tiny": false,
     "port": 6789,
     "debug": true
-
 }

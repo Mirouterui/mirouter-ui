@@ -1,6 +1,7 @@
 package main
 
 import (
+	"archive/zip"
 	"crypto/sha1"
 	"crypto/sha256"
 	"encoding/hex"
@@ -12,6 +13,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -28,6 +30,7 @@ var (
 	port       int
 	routername string
 	hardware   string
+	tiny       bool
 )
 
 type Config struct {
@@ -37,6 +40,7 @@ type Config struct {
 	Ip       string `json:"ip"`
 	Debug    bool   `json:"debug"`
 	Port     int    `json:"port"`
+	Tiny     bool   `json:"tiny"`
 }
 
 func init() {
@@ -61,12 +65,82 @@ func init() {
 	ip = config.Ip
 	debug = config.Debug
 	port = config.Port
+	tiny = config.Tiny
 	// fmt.Println(password)
 	// fmt.Println(key)
 	// fmt.Println(iv)
+	if tiny == false {
+		checkAndDownloadStatic()
+	} else {
+		fmt.Println("已启用tiny模式，请搭配 'http://mrui.hzchu.top/' 使用")
+	}
+}
+func checkAndDownloadStatic() error {
+	_, err := os.Stat("static")
+	if os.IsNotExist(err) {
+		fmt.Println("正从'Mirouterui/static'下载静态资源")
+		resp, err := http.Get("http://mrui-api.hzchu.top/downloadstatic")
+		checkErr(err)
+		defer resp.Body.Close()
 
+		out, err := os.CreateTemp("", "*.zip")
+		checkErr(err)
+		defer out.Close()
+
+		_, err = io.Copy(out, resp.Body)
+		checkErr(err)
+
+		err = unzip(out.Name(), "static")
+		checkErr(err)
+	}
+
+	return nil
 }
 
+func unzip(src, dest string) error {
+	r, err := zip.OpenReader(src)
+	if err != nil {
+		return err
+	}
+	defer r.Close()
+
+	for _, f := range r.File {
+		rc, err := f.Open()
+		checkErr(err)
+
+		fpath := filepath.Join(dest, f.Name)
+		parts := strings.Split(fpath, string(os.PathSeparator))
+		if len(parts) > 2 {
+			fpath = filepath.Join(dest, filepath.Join(parts[2:]...))
+		}
+
+		if !strings.HasPrefix(fpath, filepath.Clean(dest)+string(os.PathSeparator)) {
+			return fmt.Errorf("%s: illegal file path", fpath)
+		}
+
+		if f.FileInfo().IsDir() {
+			os.MkdirAll(fpath, os.ModePerm)
+		} else {
+			os.MkdirAll(filepath.Dir(fpath), os.ModePerm)
+			outFile, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
+			if err != nil {
+				return err
+			}
+			_, err = io.Copy(outFile, rc)
+			outFile.Close()
+		}
+
+		rc.Close()
+	}
+
+	return nil
+}
+
+func checkErr(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
 func createNonce() string {
 	typeVar := 0
 	deviceID := "" //无效参数
@@ -123,8 +197,8 @@ func getrouterinfo() int {
 	//提取routername
 	routername = data["routername"].(string)
 	hardware = data["hardware"].(string)
-	fmt.Println("路由器型号为：", hardware)
-	fmt.Println("路由器名称为：", routername)
+	debugPrint("路由器型号为:" + hardware)
+	debugPrint("路由器名称为:" + routername)
 	// 检查 newEncryptMode
 	newEncryptMode, ok := data["newEncryptMode"].(float64)
 	if !ok {

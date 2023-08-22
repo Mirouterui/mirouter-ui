@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Mirouter-UI下载</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        
+        #content {
+            margin: 0 auto;
+            width: 85%;
+        }
+        
+        .release {
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .asset {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .asset p {
+            margin: 0 0 10px;
+        }
+        
+        .asset p:last-child {
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <h1 style="text-align:center;">Mirouter-UI下载</h1>
+    <h4 style="text-align:center;">仓库链接:<a href="https://github.com/Mirouterui/mirouter-ui">Mirouterui/mirouter-ui</a><br>本处为最新发行版本</h4>
+    <div id="content"></div>
+
+    <script>
+        // ` to \`
+        fetch('/getrelease/')
+            .then(response => response.json())
+            .then(data => {
+                let content = document.getElementById('content');
+                let releaseDiv = document.createElement('div');
+                releaseDiv.className = 'release';
+                releaseDiv.innerHTML += `<p><strong>发行版本：</strong> \${data.tag_name}</p>`;
+                // releaseDiv.innerHTML += `<p><strong>发行名称：</strong> \${data.name}</p>`;
+                releaseDiv.innerHTML += `<p><strong>发行日期：</strong> \${new Date(data.published_at).toLocaleDateString()}</p>`;
+                content.appendChild(releaseDiv);
+                data.assets.forEach(asset => {
+                    let assetDiv = document.createElement('div');
+                    assetDiv.className = 'asset';
+                    assetDiv.innerHTML += `<p><strong>文件名：</strong> \${asset.name}</p>`;
+                    assetDiv.innerHTML += `<p><strong>下载链接：</strong> <a href="\${asset.browser_download_url.replace('https://github.com/Mirouterui/mirouter-ui/', 'https://mrui-api.hzchu.top/')}">\${asset.browser_download_url.replace('https://github.com/Mirouterui/mirouter-ui/', 'https://mrui-api.hzchu.top/')}</a></p>`;
+                    assetDiv.innerHTML += `<p><strong>大小：</strong> \${(asset.size / (1024 * 1024)).toFixed(2)} MB</p>`;
+                    content.appendChild(assetDiv);
+                });
+            })
+            .catch(error => console.error('错误：', error));
+    </script>
+</body>
+
+</html>
