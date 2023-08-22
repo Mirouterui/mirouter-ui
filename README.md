@@ -47,7 +47,9 @@
 ![image](https://github.com/thun888/mirouter-ui/assets/63234268/87dd59bd-dc9f-4a9f-b22f-d5fd9a9d047a)
 
 复制双引号里的内容粘贴到`config.json`对应栏目中，并填上密码（路由器后台密码）
-![image](https://github.com/thun888/mirouter-ui/assets/63234268/b581d6b9-c56e-4ce4-a356-167c6856cdf9)
+
+![image](https://github.com/Mirouterui/mirouter-ui/assets/63234268/56edd993-2119-4979-bb2d-6f822f32059b)
+
 
 > config.json 会在初次运行时自动下载
 > ip可以根据实际情况修改
@@ -60,7 +62,7 @@
 | key        |              | 路由器管理后台key                       |
 | iv         |              | 路由器管理后台iv                        |
 | ip         | 192.168.31.1 | 路由器IP                                |
-| tiny       | false        | 启用后，不再下载静态文件                |
+| tiny       | false        | 启用后，不再下载静态文件，需搭配[在线前端](http://mrui.hzchu.top/)使用|
 | routerunit | false        | 启用后，程序通过`gopsutil`库获取CPU占用 |
 | port       | 6789         | 网页页面端口号                          |
 | debug      | true         | debug模式，建议在测试正常后关闭         |
