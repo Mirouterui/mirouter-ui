@@ -30,7 +30,11 @@
 
 从[Release](https://github.com/thun888/mirouter-ui/releases/)下载二进制文件和`config.txt`
 
-如果路由器有足够空间可以下载`mipsle`版本的部署在路由器上（理论上）
+如果路由器有足够（内存）空间可以下载对应架构版本的部署在路由器上
+
+![image](https://github.com/Mirouterui/mirouter-ui/assets/63234268/5dfa3deb-0aab-4198-9170-5af1141b3746)
+
+
 
 > 如果自己新建config.txt千万不要新建成config.txt.txt
 
