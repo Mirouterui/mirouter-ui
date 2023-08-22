@@ -1,3 +1,5 @@
+![mrui-logo](https://github.com/Mirouterui/mirouter-ui/assets/63234268/da737f28-e8b6-42d7-a21e-70be2d53fb78)
+
 ## Mirouter-ui | 基于小米路由器API的展示面板
 
 将本程序部署在小米路由器的网络环境中，配置完成即可食用
