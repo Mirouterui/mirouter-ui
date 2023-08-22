@@ -62,7 +62,7 @@
 | key        |              | 路由器管理后台key                       |
 | iv         |              | 路由器管理后台iv                        |
 | ip         | 192.168.31.1 | 路由器IP                                |
-| tiny       | false        | 启用后，不再下载静态文件，需搭配[在线前端](http://mrui.hzchu.top/)使用|
+| tiny       | false        | 启用后，不再下载静态文件，需搭配[在线前端](http://mrui.757678.xyz/)使用|
 | routerunit | false        | 启用后，程序通过`gopsutil`库获取CPU占用 |
 | port       | 6789         | 网页页面端口号                          |
 | debug      | true         | debug模式，建议在测试正常后关闭         |

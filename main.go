@@ -89,7 +89,7 @@ func init() {
 	if tiny == false {
 		checkAndDownloadStatic()
 	} else {
-		fmt.Println("已启用tiny模式，请搭配 'http://mrui.hzchu.top/' 使用")
+		fmt.Println("已启用tiny模式，请搭配 'http://mrui.757678.xyz/' 使用")
 	}
 }
 func checkAndDownloadStatic() error {
@@ -290,6 +290,8 @@ func main() {
 		e.Use(middleware.Logger())
 	}
 	e.Use(middleware.Recover())
+	e.Use(middleware.CORS())
+
 	e.GET("/api/:apipath", func(c echo.Context) error {
 		apipath := c.Param("apipath")
 		switch apipath {
@@ -328,7 +330,9 @@ func main() {
 	// var contentRewrite = middleware.Rewrite(map[string]string{"/*": "/static/$1"})
 
 	// e.GET("/*", contentHandler, contentRewrite)
-	e.Static("/", "static")
+	if tiny == false {
+		e.Static("/static", "static")
+	}
 
 	updateToken()
 	go func() {
