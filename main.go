@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
 	"os/signal"
 	"path/filepath"
 	"strings"
@@ -89,7 +90,7 @@ func init() {
 	if tiny == false {
 		checkAndDownloadStatic()
 	} else {
-		fmt.Println("已启用tiny模式，请搭配 'http://mrui.757678.xyz/' 使用")
+		fmt.Println("已启用tiny模式，请搭配 'http://mrui.hzchu.top:8880/' 使用")
 	}
 }
 func checkAndDownloadStatic() error {
@@ -284,6 +285,56 @@ func debugPrint(msg string) {
 		fmt.Println("[DEBUG]" + msg)
 	}
 }
+
+// 红米AX6专用
+func getCPUTemperature(c echo.Context) error {
+	cmd := exec.Command("cat", "/sys/class/thermal/thermal_zone0/temp")
+	out, err := cmd.Output()
+
+	if err != nil || routerunit == false {
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"code":        1100,
+			"temperature": -1,
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"code":        0,
+		"temperature": string(out),
+	})
+}
+func get24gWifiTemperature(c echo.Context) error {
+	cmd := exec.Command("cat", "/sys/class/ieee80211/phy0/device/net/wifi1/thermal/temp")
+	out, err := cmd.Output()
+
+	if err != nil || routerunit == false {
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"code":        1100,
+			"temperature": -1,
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"code":        0,
+		"temperature": string(out),
+	})
+}
+func get5gWifiTemperature(c echo.Context) error {
+	cmd := exec.Command("cat", "/sys/class/ieee80211/phy0/device/net/wifi0/thermal/temp")
+	out, err := cmd.Output()
+
+	if err != nil || routerunit == false {
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"code":        1100,
+			"temperature": -1,
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"code":        0,
+		"temperature": string(out),
+	})
+}
 func main() {
 	e := echo.New()
 	if debug == true {
@@ -325,6 +376,9 @@ func main() {
 			})
 		}
 	})
+	e.GET("/api/cputemperature", getCPUTemperature)
+	e.GET("/api/24gWifiTemperature", get24gWifiTemperature)
+	e.GET("/api/5gWifiTemperature", get5gWifiTemperature)
 
 	// var contentHandler = echo.WrapHandler(http.FileServer(http.FS(static)))
 	// var contentRewrite = middleware.Rewrite(map[string]string{"/*": "/static/$1"})
