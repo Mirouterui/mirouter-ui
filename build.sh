@@ -1,4 +1,4 @@
-VERSION="1.0.0"
+VERSION="1.1.0"
 echo "Building MirouterUI $VERSION..."
 echo "Deleting old build..."
 rm mirouterui_win_amd64.exe
