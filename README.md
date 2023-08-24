@@ -42,6 +42,8 @@
 
 #### 获取key和iv
 
+> 自动获取：[Mirouterui/MiKVIVator](https://github.com/Mirouterui/MiKVIVator)
+
 打开路由器登录页面，右键，点击`查看页面源代码`，按下`CTRL + F`组合键打开搜索框，搜索`key:`，不出意外你能看见以下结果
 
 ![image](https://github.com/thun888/mirouter-ui/assets/63234268/87dd59bd-dc9f-4a9f-b22f-d5fd9a9d047a)
