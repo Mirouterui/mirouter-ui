@@ -385,7 +385,7 @@ func main() {
 
 	// e.GET("/*", contentHandler, contentRewrite)
 	if tiny == false {
-		e.Static("/static", "static")
+		e.Static("/", "static")
 	}
 
 	updateToken()
