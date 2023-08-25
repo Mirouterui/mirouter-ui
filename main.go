@@ -36,6 +36,9 @@ var (
 	hardware   string
 	tiny       bool
 	routerunit bool
+	cpu_cmd    *exec.Cmd
+	w24g_cmd   *exec.Cmd
+	w5g_cmd    *exec.Cmd
 )
 
 type Config struct {
@@ -84,6 +87,7 @@ func init() {
 	debug = config.Debug
 	port = config.Port
 	tiny = config.Tiny
+	routerunit = config.Routerunit
 	// fmt.Println(password)
 	// fmt.Println(key)
 	// fmt.Println(iv)
@@ -287,54 +291,57 @@ func debugPrint(msg string) {
 }
 
 // 红米AX6专用
-func getCPUTemperature(c echo.Context) error {
-	cmd := exec.Command("cat", "/sys/class/thermal/thermal_zone0/temp")
-	out, err := cmd.Output()
-
-	if err != nil || routerunit == false {
+func getTemperature(c echo.Context) error {
+	if routerunit == false {
 		return c.JSON(http.StatusOK, map[string]interface{}{
-			"code":        1100,
-			"temperature": -1,
+			"code": 1100,
+			"msg":  "未开启routerunit模式",
+		})
+	}
+	if hardware == "RA69" {
+		cpu_cmd = exec.Command("cat", "/sys/class/thermal/thermal_zone0/temp")
+		w24g_cmd = exec.Command("cat", "/sys/class/ieee80211/phy0/device/net/wifi1/thermal/temp")
+		w5g_cmd = exec.Command("cat", "/sys/class/ieee80211/phy0/device/net/wifi0/thermal/temp")
+
+	} else {
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"code": 1101,
+			"msg":  "设备不支持",
+		})
+	}
+	cpu_out, err1 := cpu_cmd.Output()
+	w24g_out, err2 := w24g_cmd.Output()
+	w5g_out, err3 := w5g_cmd.Output()
+
+	if err1 != nil || err2 != nil || err3 != nil {
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"code": 1100,
+			"msg":  "获取温度失败,报错信息为" + err1.Error() + err2.Error() + err3.Error(),
 		})
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"code":        0,
-		"temperature": string(out),
+		"code":             0,
+		"cpu_temperature":  string(cpu_out),
+		"w24g_temperature": string(w24g_out),
+		"w5g_temperature":  string(w5g_out),
 	})
 }
-func get24gWifiTemperature(c echo.Context) error {
-	cmd := exec.Command("cat", "/sys/class/ieee80211/phy0/device/net/wifi1/thermal/temp")
-	out, err := cmd.Output()
-
-	if err != nil || routerunit == false {
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"code":        1100,
-			"temperature": -1,
-		})
-	}
-
+func getconfig(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"code":        0,
-		"temperature": string(out),
+		"code":       0,
+		"key":        key,
+		"iv":         iv,
+		"ip":         ip,
+		"tiny":       tiny,
+		"port":       port,
+		"routerunit": routerunit,
+		"debug":      debug,
+		// "token":      token,
+		"hardware": hardware,
 	})
 }
-func get5gWifiTemperature(c echo.Context) error {
-	cmd := exec.Command("cat", "/sys/class/ieee80211/phy0/device/net/wifi0/thermal/temp")
-	out, err := cmd.Output()
 
-	if err != nil || routerunit == false {
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"code":        1100,
-			"temperature": -1,
-		})
-	}
-
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"code":        0,
-		"temperature": string(out),
-	})
-}
 func main() {
 	e := echo.New()
 	if debug == true {
@@ -376,9 +383,8 @@ func main() {
 			})
 		}
 	})
-	e.GET("/api/cputemperature", getCPUTemperature)
-	e.GET("/api/24gWifiTemperature", get24gWifiTemperature)
-	e.GET("/api/5gWifiTemperature", get5gWifiTemperature)
+	e.GET("/_api/gettemperature", getTemperature)
+	e.GET("/_api/getconfig", getconfig)
 
 	// var contentHandler = echo.WrapHandler(http.FileServer(http.FS(static)))
 	// var contentRewrite = middleware.Rewrite(map[string]string{"/*": "/static/$1"})

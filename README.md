@@ -29,6 +29,9 @@
 
 ![router_index](https://github.com/thun888/mirouter-ui/assets/63234268/1ddce346-7abd-4816-bc55-fe55d3dc70c9)
 
+#### 温度显示（仅支持部分设备）
+
+![Snipaste_2023-08-25_13-33-54](https://github.com/Mirouterui/mirouter-ui/assets/63234268/0926dafd-a63e-4ee6-bc61-f381c1dfc199)
 
 
 ### 部署
@@ -48,6 +51,7 @@
 #### 获取key和iv
 
 > 自动获取：[Mirouterui/MiKVIVator](https://github.com/Mirouterui/MiKVIVator)
+> ps:我在3个路由器上发现了一样的数值，已添加为默认值，如果无法登录再尝试更改吧
 
 打开路由器登录页面，右键，点击`查看页面源代码`，按下`CTRL + F`组合键打开搜索框，搜索`key:`，不出意外你能看见以下结果
 
@@ -66,8 +70,8 @@
 | 配置名     | 默认值       | 解释                                    |
 | ---------- | ------------ | --------------------------------------- |
 | password   |              | 路由器管理后台密码                      |
-| key        |              | 路由器管理后台key                       |
-| iv         |              | 路由器管理后台iv                        |
+| key        | a2ffa5c9be07488bbb04a3a47d3c5f6a             | 路由器管理后台key                       |
+| iv         | 64175472480004614961023454661220             | 路由器管理后台iv                        |
 | ip         | 192.168.31.1 | 路由器IP                                |
 | tiny       | false        | 启用后，不再下载静态文件，需搭配[在线前端](http://mrui.hzchu.top:8880/)使用|
 | routerunit | false        | 启用后，程序通过`gopsutil`库获取CPU占用 |

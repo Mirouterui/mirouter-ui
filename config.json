@@ -1,7 +1,7 @@
 {
-    "password": "your_password",
-    "key": "your_key",
-    "iv": "your_iv",
+    "password": "",
+    "key": "a2ffa5c9be07488bbb04a3a47d3c5f6a",
+    "iv": "64175472480004614961023454661220",
     "ip": "192.168.31.1",
     "tiny": false,
     "routerunit": false,
