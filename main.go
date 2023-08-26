@@ -348,6 +348,13 @@ func main() {
 		e.Use(middleware.Logger())
 	}
 	e.Use(middleware.Recover())
+	// e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+	// 	return func(c echo.Context) error {
+	// 		c.Response().Header().Set("Access-Control-Allow-Private-Network", "true")
+	// 		return next(c)
+	// 	}
+	// })
+
 	e.Use(middleware.CORS())
 
 	e.GET("/api/:apipath", func(c echo.Context) error {
@@ -385,6 +392,16 @@ func main() {
 	})
 	e.GET("/_api/gettemperature", getTemperature)
 	e.GET("/_api/getconfig", getconfig)
+	e.GET("/_api/quit", func(c echo.Context) error {
+		go func() {
+			time.Sleep(1 * time.Second)
+			defer os.Exit(0)
+		}()
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"code": 0,
+			"msg":  "正在关闭",
+		})
+	})
 
 	// var contentHandler = echo.WrapHandler(http.FileServer(http.FS(static)))
 	// var contentRewrite = middleware.Rewrite(map[string]string{"/*": "/static/$1"})
