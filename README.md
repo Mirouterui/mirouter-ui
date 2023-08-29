@@ -43,7 +43,7 @@
 
 ### Docker
 
-> docker run -d -p 6789:6789 -v $(pwd):/app/data thun888/mirouter-ui
+> docker run -d -p 6789:6789 -v $(pwd):/app/data --name mirouter-ui --restart=always thun888/mirouter-ui
 
 新建一个文件夹，并在该文件夹里运行上述命令，程序会在该文件夹里生成配置文件，修改即可
 
