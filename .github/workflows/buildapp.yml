@@ -1,6 +1,8 @@
 name: Build and Release
 run-name: Build ${{ github.event.inputs.version }} by @${{ github.actor }}
 
+permissions: write-all
+
 on:
   workflow_dispatch:
       inputs:
@@ -19,6 +21,7 @@ jobs:
       uses: peter-evans/repository-dispatch@v2
       with:
         event-type: mrui-release
+
     - name: Checkout code
       uses: actions/checkout@v3
 
