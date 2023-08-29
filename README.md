@@ -2,13 +2,17 @@
 
 ## Mirouter-ui
 
-> 基于小米路由器API的展示面板
+> 🕊️ 基于小米路由器API的展示面板
+
+[![Docker Pulls](https://img.shields.io/docker/pulls/thun888/mirouter-ui)](https://hub.docker.com/r/thun888/mirouter-ui)
+[![Build and Release](https://github.com/Mirouterui/mirouter-ui/actions/workflows/buildapp.yml/badge.svg)](https://github.com/Mirouterui/mirouter-ui/actions/workflows/buildapp.yml)
+[![build-docker](https://github.com/Mirouterui/mirouter-ui/actions/workflows/builddocker.yml/badge.svg)](https://github.com/Mirouterui/mirouter-ui/actions/workflows/builddocker.yml)
 
 将本程序部署在小米路由器的网络环境中，配置完成即可食用
 
 后端基于Golang，多平台兼容
 
-已在小米路由器r1d,r4a上测试通过
+已在小米路由器R1D,R4A上测试通过
 
 部分新路由无法获取cpu占用，如红米AX6000,AX1800。可在路由器上运行解决
 
@@ -112,3 +116,8 @@
 [Linux命令后台运行_后台运行命令_拉普拉斯妖1228的博客-CSDN博客](https://blog.csdn.net/caesar1228/article/details/118853871)
 
 [windows守护进程工具--nssm详解 - 与f - 博客园 (cnblogs.com)](https://www.cnblogs.com/fps2tao/p/16433588.html)
+
+## Stars~
+
+[![Stars~](https://starchart.cc/mirouterui/mirouter-ui.svg)](https://starchart.cc/mirouterui/mirouter-ui)
+
