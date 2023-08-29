@@ -5,8 +5,7 @@
 > 🕊️ 基于小米路由器API的展示面板
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/thun888/mirouter-ui)](https://hub.docker.com/r/thun888/mirouter-ui)
-[![Build and Release](https://github.com/Mirouterui/mirouter-ui/actions/workflows/buildapp.yml/badge.svg)](https://github.com/Mirouterui/mirouter-ui/actions/workflows/buildapp.yml)
-[![build-docker](https://github.com/Mirouterui/mirouter-ui/actions/workflows/builddocker.yml/badge.svg)](https://github.com/Mirouterui/mirouter-ui/actions/workflows/builddocker.yml)
+[![Release And Docker](https://github.com/Mirouterui/mirouter-ui/actions/workflows/buildapp.yml/badge.svg)](https://github.com/Mirouterui/mirouter-ui/actions/workflows/buildapp.yml)
 
 将本程序部署在小米路由器的网络环境中，配置完成即可食用
 

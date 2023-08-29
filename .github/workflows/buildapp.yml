@@ -12,15 +12,9 @@ on:
 
 
 jobs:
-  build:
+  build_win:
     runs-on: ubuntu-latest
-
     steps:
-
-    - name: Repository Dispatch
-      uses: peter-evans/repository-dispatch@v2
-      with:
-        event-type: mrui-release
 
     - name: Checkout code
       uses: actions/checkout@v3
@@ -37,35 +31,134 @@ jobs:
       run: go mod download
 
     - name: Run build script
-      run: bash build.sh ${{ github.event.inputs.version }}  > temp.txt
+      run: bash build.sh ${{ github.event.inputs.version }} win
 
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.TOKEN }}
+    - name: upload artifact
+      uses: actions/upload-artifact@v3
       with:
-        tag_name: v${{ github.event.inputs.version }}
-        release_name: Release ${{ github.event.inputs.version }}
-        draft: true
-        prerelease: false
+        name: mirouter-ui-win
+        path: ./build/**
 
-    - name: Upload Release Assets
-      run: |
-        for file in ./build/*; do
-          if [ -f "$file" ]; then
-            echo "Uploading $file"
-            curl \
-              -H "Authorization: token ${{ secrets.TOKEN }}" \
-              -H "Content-Type: $(file -b --mime-type $file)" \
-              --data-binary @"$file" \
-              "${{ steps.create_release.outputs.upload_url }}=$(basename $file)"
-          fi
-        done
+  build_linux:
+    runs-on: ubuntu-latest
+    steps:
 
-    - name: send telegram message on push
-      uses: appleboy/telegram-action@master
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
       with:
-        to: ${{ secrets.TELEGRAM_TO }}
-        token: ${{ secrets.TELEGRAM_TOKEN }}
-        document: ./temp.txt
+        go-version: '1.21'
+
+    - name: Install UPX
+      run: sudo apt-get install upx
+    
+    - name: download modules
+      run: go mod download
+
+    - name: Run build script
+      run: bash build.sh ${{ github.event.inputs.version }} linux
+
+    - name: upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: mirouter-ui-linux
+        path: ./build/**
+
+  build_darwin:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+
+    - name: Install UPX
+      run: sudo apt-get install upx
+    
+    - name: download modules
+      run: go mod download
+
+    - name: Run build script
+      run: bash build.sh ${{ github.event.inputs.version }} darwin
+
+    - name: upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: mirouter-ui-darwin
+        path: ./build/**
+
+  post_release:
+    runs-on: ubuntu-latest
+    needs: [build_win, build_linux, build_darwin]
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: mirouter-ui-win
+          path: ./build
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: mirouter-ui-linux
+          path: ./build
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: mirouter-ui-darwin
+          path: ./build
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        with:
+          tag_name: v${{ github.event.inputs.version }}
+          release_name: Release ${{ github.event.inputs.version }}
+          draft: true
+          prerelease: false
+
+      - name: Upload Release Assets
+        run: |
+          for file in ./build/*; do
+            if [ -f "$file" ]; then
+              echo "Uploading $file"
+              curl \
+                -H "Authorization: token ${{ secrets.TOKEN }}" \
+                -H "Content-Type: $(file -b --mime-type $file)" \
+                --data-binary @"$file" \
+                "${{ steps.create_release.outputs.upload_url }}=$(basename $file)"
+            fi
+          done
+        
+  builddocker:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v3
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      -
+        name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+      -
+        name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          platforms: linux/amd64,linux/386,linux/arm64
+          push: true
+          tags: thun888/mirouter-ui:latest
