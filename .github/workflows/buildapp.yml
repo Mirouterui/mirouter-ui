@@ -1,0 +1,68 @@
+name: Build and Release
+run-name: Build ${{ github.event.inputs.version }} by @${{ github.actor }}
+
+on:
+  workflow_dispatch:
+      inputs:
+        version:
+          description: '版本号'
+          required: true
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Repository Dispatch
+      uses: peter-evans/repository-dispatch@v2
+      with:
+        event-type: mrui-release
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+
+    - name: Install UPX
+      run: sudo apt-get install upx
+    
+    - name: download modules
+      run: go mod download
+
+    - name: Run build script
+      run: bash build.sh ${{ github.event.inputs.version }}  > temp.txt
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.TOKEN }}
+      with:
+        tag_name: ${{ github.event.inputs.version }}
+        release_name: Release ${{ github.event.inputs.version }}
+        draft: true
+        prerelease: false
+
+    - name: Upload Release Assets
+      run: |
+        for file in ./build/*; do
+          if [ -f "$file" ]; then
+            echo "Uploading $file"
+            curl \
+              -H "Authorization: token ${{ secrets.TOKEN }}" \
+              -H "Content-Type: $(file -b --mime-type $file)" \
+              --data-binary @"$file" \
+              "${{ steps.create_release.outputs.upload_url }}=$(basename $file)"
+          fi
+        done
+
+    - name: send telegram message on push
+      uses: appleboy/telegram-action@master
+      with:
+        to: ${{ secrets.TELEGRAM_TO }}
+        token: ${{ secrets.TELEGRAM_TOKEN }}
+        document: ./temp.txt

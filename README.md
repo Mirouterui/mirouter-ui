@@ -1,6 +1,8 @@
 ![mrui-logo](https://github.com/Mirouterui/mirouter-ui/assets/63234268/da737f28-e8b6-42d7-a21e-70be2d53fb78)
 
-## Mirouter-ui | 基于小米路由器API的展示面板
+## Mirouter-ui
+
+> 基于小米路由器API的展示面板
 
 将本程序部署在小米路由器的网络环境中，配置完成即可食用
 
@@ -10,7 +12,7 @@
 
 部分新路由无法获取cpu占用，如红米AX6000,AX1800。可在路由器上运行解决
 
-### 图片展示
+## 图片展示
 
 #### 首页
 
@@ -34,7 +36,15 @@
 ![Snipaste_2023-08-25_13-33-54](https://github.com/Mirouterui/mirouter-ui/assets/63234268/0926dafd-a63e-4ee6-bc61-f381c1dfc199)
 
 
-### 部署
+## 部署
+
+### Docker
+
+> docker run -d -p 6789:6789 -v $(pwd):/app/data thun888/mirouter-ui
+
+新建一个文件夹，并在该文件夹里运行上述命令，程序会在该文件夹里生成配置文件，修改即可
+
+### 直接运行
 
 #### 下载
 
@@ -77,6 +87,15 @@
 | routerunit | false        | 启用后，程序通过`gopsutil`库获取CPU占用 |
 | port       | 6789         | 网页页面端口号                          |
 | debug      | true         | debug模式，建议在测试正常后关闭         |
+
+命令行参数：
+
+| 参数            | 解释                             |
+| --------------- | -------------------------------- |
+| --config        | 配置文件路径                     |
+| --basedirectory | 基础目录路径，在里面存放静态文件 |
+
+
 
 然后运行程序
 

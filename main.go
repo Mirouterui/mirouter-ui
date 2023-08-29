@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"math/rand"
@@ -25,20 +26,22 @@ import (
 )
 
 var (
-	password   string
-	key        string
-	iv         string
-	ip         string
-	token      string
-	debug      bool
-	port       int
-	routername string
-	hardware   string
-	tiny       bool
-	routerunit bool
-	cpu_cmd    *exec.Cmd
-	w24g_cmd   *exec.Cmd
-	w5g_cmd    *exec.Cmd
+	password      string
+	key           string
+	iv            string
+	ip            string
+	token         string
+	debug         bool
+	port          int
+	routername    string
+	hardware      string
+	tiny          bool
+	routerunit    bool
+	cpu_cmd       *exec.Cmd
+	w24g_cmd      *exec.Cmd
+	w5g_cmd       *exec.Cmd
+	configPath    string
+	basedirectory string
 )
 
 type Config struct {
@@ -53,11 +56,18 @@ type Config struct {
 }
 
 func init() {
-	exePath, err := os.Executable()
-	if err != nil {
-		panic(err)
+	flag.StringVar(&configPath, "config", "", "配置文件路径")
+	flag.StringVar(&basedirectory, "basedirectory", "", "基础目录路径")
+	flag.Parse()
+	if configPath == "" {
+		appPath, err := os.Executable()
+		if err != nil {
+			panic(err)
+		}
+		configPath = filepath.Join(filepath.Dir(appPath), "config.json")
 	}
-	configPath := filepath.Join(filepath.Dir(exePath), "config.json")
+
+	fmt.Println(configPath)
 	debugPrint("配置文件路径为:" + configPath)
 	data, err := os.ReadFile(configPath)
 	if err != nil {
@@ -65,7 +75,7 @@ func init() {
 		resp, err := http.Get("https://mrui-api.hzchu.top/downloadconfig")
 		checkErr(err)
 		defer resp.Body.Close()
-		out, err := os.Create("config.json")
+		out, err := os.Create(configPath)
 		checkErr(err)
 		defer out.Close()
 		_, err = io.Copy(out, resp.Body)
@@ -92,13 +102,18 @@ func init() {
 	// fmt.Println(key)
 	// fmt.Println(iv)
 	if tiny == false {
-		checkAndDownloadStatic()
+		checkAndDownloadStatic(basedirectory)
 	} else {
 		fmt.Println("已启用tiny模式，请搭配 'http://mrui.hzchu.top:8880/' 使用")
 	}
 }
-func checkAndDownloadStatic() error {
-	_, err := os.Stat("static")
+func checkAndDownloadStatic(basedirectory string) error {
+	directory := "static"
+	if basedirectory != "" {
+		directory = filepath.Join(basedirectory, "static")
+	}
+
+	_, err := os.Stat(directory)
 	if os.IsNotExist(err) {
 		fmt.Println("正从'Mirouterui/static'下载静态资源")
 		resp, err := http.Get("http://mrui-api.hzchu.top/downloadstatic")
@@ -112,7 +127,7 @@ func checkAndDownloadStatic() error {
 		_, err = io.Copy(out, resp.Body)
 		checkErr(err)
 
-		err = unzip(out.Name(), "static")
+		err = unzip(out.Name(), directory)
 		checkErr(err)
 	}
 
@@ -436,7 +451,11 @@ func main() {
 
 	// e.GET("/*", contentHandler, contentRewrite)
 	if tiny == false {
-		e.Static("/", "static")
+		directory := "static"
+		if basedirectory != "" {
+			directory = filepath.Join(basedirectory, "static")
+		}
+		e.Static("/", directory)
 	}
 
 	updateToken()
