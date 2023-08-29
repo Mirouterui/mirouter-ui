@@ -144,12 +144,11 @@ func unzip(src, dest string) error {
 	for _, f := range r.File {
 		rc, err := f.Open()
 		checkErr(err)
-
-		fpath := filepath.Join(dest, f.Name)
-		parts := strings.Split(fpath, string(os.PathSeparator))
-		if len(parts) > 2 {
-			fpath = filepath.Join(dest, filepath.Join(parts[2:]...))
+		fname := f.Name
+		if len(fname) > 26 {
+			fname = fname[26:]
 		}
+		fpath := filepath.Join(dest, fname)
 
 		if !strings.HasPrefix(fpath, filepath.Clean(dest)+string(os.PathSeparator)) {
 			return fmt.Errorf("%s: illegal file path", fpath)
@@ -455,6 +454,7 @@ func main() {
 		if basedirectory != "" {
 			directory = filepath.Join(basedirectory, "static")
 		}
+		debugPrint("静态资源目录为:" + directory)
 		e.Static("/", directory)
 	}
 
