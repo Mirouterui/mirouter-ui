@@ -410,7 +410,7 @@ func main() {
 			if err != nil {
 				return c.JSON(http.StatusOK, map[string]interface{}{
 					"code": 1101,
-					"msg":  "MiRouterのapi调用出错，请检查配置或路由器状态",
+					"msg":  "MiRouter的api调用出错，请检查配置或路由器状态",
 				})
 			}
 			defer resp.Body.Close()
