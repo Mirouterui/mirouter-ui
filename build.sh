@@ -13,7 +13,7 @@ mkdir -p $OUTPUT_DIR
 if [ -z "$2" ] || [ "$2" = "win" ]
 then
     echo "Building win_amd64"
-    GOOS=windows GOARCH=amd64 go build -o $OUTPUT_DIR/mirouterui_win_amd64_noupx_$VERSION.exe main.go
+    GOOS=windows GOARCH=amd64 go build -ldflags "-X 'main.Version=`$VERSION`'" -o $OUTPUT_DIR/mirouterui_win_amd64_noupx_$VERSION.exe main.go
     upx --best -o $OUTPUT_DIR/mirouterui_win_amd64_$VERSION.exe $OUTPUT_DIR/mirouterui_win_amd64_noupx_$VERSION.exe
 
     echo "Building win_386"
