@@ -5,6 +5,7 @@ go 1.19
 require (
 	github.com/labstack/echo/v4 v4.11.1
 	github.com/shirou/gopsutil v3.21.11+incompatible
+	github.com/sirupsen/logrus v1.9.3
 )
 
 require (
