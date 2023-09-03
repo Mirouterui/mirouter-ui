@@ -13,8 +13,6 @@ import (
 	"os"
 	"time"
 
-	_ "main/modules/config"
-
 	"github.com/sirupsen/logrus"
 )
 
@@ -59,7 +57,7 @@ func newhashPassword(pwd string, nonce string, key string) string {
 
 	return noncePwdKeyHashStr
 }
-func getrouterinfo() (bool, string) {
+func getrouterinfo(ip string) (bool, string) {
 
 	// 发送 GET 请求
 	ourl := fmt.Sprintf("http://%s/cgi-bin/luci/api/xqsystem/init_info", ip)
@@ -101,7 +99,7 @@ func getrouterinfo() (bool, string) {
 }
 func GetToken(password string, key string, ip string) (string, string) {
 	logrus.Debug("获取路由器信息...")
-	newEncryptMode, routername := getrouterinfo()
+	newEncryptMode, routername := getrouterinfo(ip)
 	logrus.Info("更新token...")
 	nonce := createNonce()
 	var hashedPassword string
@@ -111,6 +109,7 @@ func GetToken(password string, key string, ip string) (string, string) {
 	} else {
 		hashedPassword = hashPassword(password, nonce, key)
 	}
+
 	ourl := fmt.Sprintf("http://%s/cgi-bin/luci/api/xqsystem/login", ip)
 	params := url.Values{}
 	params.Set("username", "admin")
@@ -121,7 +120,7 @@ func GetToken(password string, key string, ip string) (string, string) {
 	resp, err := http.PostForm(ourl, params)
 	if err != nil {
 		logrus.Info("登录失败，请检查配置或路由器状态")
-		logrus.Info("5秒后退出程序")
+		logrus.Info(err)
 		time.Sleep(5 * time.Second)
 		os.Exit(1)
 	}

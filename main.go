@@ -5,16 +5,16 @@ import (
 	_ "flag"
 	"fmt"
 	"io"
+	"main/modules/config"
 	login "main/modules/login"
 	"net/http"
 	"os"
 	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"strconv"
 	"syscall"
 	"time"
-
-	_ "main/modules/config"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -27,12 +27,15 @@ var (
 	key           string
 	ip            string
 	token         string
+	tokens        map[int]string
 	debug         bool
 	port          int
-	routername    string
+	routerName    string
+	routerNames   map[int]string
 	hardware      string
 	tiny          bool
 	routerunit    bool
+	dev           []config.Dev
 	cpu_cmd       *exec.Cmd
 	w24g_cmd      *exec.Cmd
 	w5g_cmd       *exec.Cmd
@@ -41,6 +44,18 @@ var (
 	Version       string
 )
 
+type Config struct {
+	Dev   []config.Dev `json:"dev"`
+	Debug bool         `json:"debug"`
+	Port  int          `json:"port"`
+	Tiny  bool         `json:"tiny"`
+}
+
+func init() {
+	dev, debug, port, tiny = config.Getconfig()
+	tokens = make(map[int]string)
+	routerNames = make(map[int]string)
+}
 func GetCpuPercent() float64 {
 	percent, _ := cpu.Percent(time.Second, false)
 	return percent[0] / 100
@@ -125,6 +140,14 @@ func getconfig(c echo.Context) error {
 	})
 }
 
+func gettoken(dev []config.Dev) {
+	for i, d := range dev {
+		token, routerName := login.GetToken(d.Password, d.Key, d.IP)
+		tokens[i] = token
+		routerNames[i] = routerName
+		print(tokens[i])
+	}
+}
 func main() {
 	e := echo.New()
 	e.Use(middleware.Recover())
@@ -137,13 +160,23 @@ func main() {
 
 	e.Use(middleware.CORS())
 
-	e.GET("/api/:apipath", func(c echo.Context) error {
+	e.GET("/:devnum/api/:apipath", func(c echo.Context) error {
+		devnum, err := strconv.Atoi(c.Param("devnum"))
+		fmt.Println(tokens)
+		if err != nil {
+			return c.JSON(http.StatusOK, map[string]interface{}{"code": 1100, "msg": "参数错误"})
+		}
 		apipath := c.Param("apipath")
+		ip = dev[devnum].IP
+		logrus.Debug(ip)
+
 		switch apipath {
+
 		case "xqsystem/router_name":
-			return c.JSON(http.StatusOK, map[string]interface{}{"code": 0, "routerName": routername})
+			return c.JSON(http.StatusOK, map[string]interface{}{"code": 0, "routerName": routerNames[devnum]})
+
 		case "misystem/status", "misystem/devicelist", "xqsystem/internet_connect", "xqsystem/fac_info", "misystem/messages":
-			url := fmt.Sprintf("http://%s/cgi-bin/luci/;stok=%s/api/%s", ip, token, apipath)
+			url := fmt.Sprintf("http://%s/cgi-bin/luci/;stok=%s/api/%s", ip, tokens[devnum], apipath)
 			resp, err := http.Get(url)
 			if err != nil {
 				return c.JSON(http.StatusOK, map[string]interface{}{
@@ -163,6 +196,7 @@ func main() {
 				}
 			}
 			return c.JSON(http.StatusOK, result)
+
 		default:
 			return c.JSON(http.StatusOK, map[string]interface{}{
 				"code": 1102,
@@ -195,11 +229,11 @@ func main() {
 		logrus.Debug("静态资源目录为:" + directory)
 		e.Static("/", directory)
 	}
+	gettoken(dev)
 
-	token, routername = login.GetToken(password, key, ip)
 	go func() {
 		for range time.Tick(30 * time.Minute) {
-			token, routername = login.GetToken(password, key, ip)
+			gettoken(dev)
 		}
 	}()
 	e.Start(":" + fmt.Sprint(port))
