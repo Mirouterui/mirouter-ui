@@ -5,6 +5,7 @@ go 1.19
 require (
 	github.com/labstack/echo/v4 v4.11.1
 	github.com/shirou/gopsutil v3.21.11+incompatible
+	github.com/sirupsen/logrus v1.9.3
 )
 
 require (
@@ -13,7 +14,6 @@ require (
 	github.com/labstack/gommon v0.4.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
-	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
 	github.com/tklauser/numcpus v0.6.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect

@@ -127,16 +127,28 @@ func getTemperature(c echo.Context) error {
 	})
 }
 func getconfig(c echo.Context) error {
+	type DevNoPassword struct {
+		Key        string `json:"key"`
+		IP         string `json:"ip"`
+		RouterUnit bool   `json:"routerunit"`
+	}
+
+	devsNoPassword := []DevNoPassword{}
+	for _, d := range dev {
+		devNoPassword := DevNoPassword{
+			Key:        d.Key,
+			IP:         d.IP,
+			RouterUnit: d.RouterUnit,
+		}
+		devsNoPassword = append(devsNoPassword, devNoPassword)
+	}
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"code":       0,
-		"key":        key,
-		"ip":         ip,
-		"tiny":       tiny,
-		"port":       port,
-		"routerunit": routerunit,
-		"debug":      debug,
+		"code":  0,
+		"tiny":  tiny,
+		"port":  port,
+		"debug": debug,
 		// "token":      token,
-		"hardware": hardware,
+		"dev": devsNoPassword,
 	})
 }
 
@@ -162,7 +174,7 @@ func main() {
 
 	e.GET("/:devnum/api/:apipath", func(c echo.Context) error {
 		devnum, err := strconv.Atoi(c.Param("devnum"))
-		fmt.Println(tokens)
+		logrus.Debug(tokens)
 		if err != nil {
 			return c.JSON(http.StatusOK, map[string]interface{}{"code": 1100, "msg": "参数错误"})
 		}
