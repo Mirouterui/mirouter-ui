@@ -40,7 +40,7 @@ type Config struct {
 	Tiny  bool  `json:"tiny"`
 }
 
-func Getconfig() (dev []Dev, debug bool, port int, tiny bool) {
+func Getconfig() (dev []Dev, debug bool, port int, tiny bool, basedirectory string) {
 	flag.StringVar(&configPath, "config", "", "配置文件路径")
 	flag.StringVar(&basedirectory, "basedirectory", "", "基础目录路径")
 	flag.Parse()
@@ -95,7 +95,7 @@ func Getconfig() (dev []Dev, debug bool, port int, tiny bool) {
 		time.Sleep(5 * time.Second)
 		os.Exit(1)
 	}
-	return dev, debug, port, tiny
+	return dev, debug, port, tiny, basedirectory
 }
 
 func checkErr(err error) {

@@ -52,7 +52,7 @@ type Config struct {
 }
 
 func init() {
-	dev, debug, port, tiny = config.Getconfig()
+	dev, debug, port, tiny, basedirectory = config.Getconfig()
 	tokens = make(map[int]string)
 	routerNames = make(map[int]string)
 }
