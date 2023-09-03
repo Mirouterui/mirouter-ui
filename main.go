@@ -62,12 +62,9 @@ func GetCpuPercent() float64 {
 }
 
 // 红米AX6专用
-func getTemperature(c echo.Context) error {
-	if routerunit == false {
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"code": 1100,
-			"msg":  "未开启routerunit模式",
-		})
+func getTemperature(c echo.Context, devnum int) (bool, string, string, string, string) {
+	if dev[devnum].RouterUnit == false {
+		return false, "-233", "-233", "-233", "-233"
 	}
 	var cpu_out, w24g_out, w5g_out []byte
 	var err1, err2, err3 error
@@ -95,36 +92,21 @@ func getTemperature(c echo.Context) error {
 		var data Ubus_data
 		err := json.Unmarshal(cpu_out, &data)
 		if err != nil {
-			return c.JSON(http.StatusOK, map[string]interface{}{
-				"code": 1100,
-				"msg":  "JSON解析错误," + err.Error(),
-			})
+			logrus.Error("获取温度失败,报错信息为" + err.Error())
 		}
 		cpu_tp = data.Temperature
 		fanspeed = data.Fanspeed
 		w24g_tp = "-233"
 		w5g_tp = "-233"
 	default:
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"code": 1101,
-			"msg":  "设备不支持",
-		})
+		return false, "-233", "-233", "-233", "-233"
 	}
 
 	if err1 != nil || err2 != nil || err3 != nil {
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"code": 1100,
-			"msg":  "获取温度失败,报错信息为" + err1.Error() + err2.Error() + err3.Error(),
-		})
+		logrus.Error("获取温度失败,报错信息为" + err1.Error() + err2.Error() + err3.Error())
 	}
 
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"code":             0,
-		"cpu_temperature":  cpu_tp,
-		"fanspeed":         fanspeed,
-		"w24g_temperature": w24g_tp,
-		"w5g_temperature":  w5g_tp,
-	})
+	return true, cpu_tp, fanspeed, w24g_tp, w5g_tp
 }
 func getconfig(c echo.Context) error {
 	type DevNoPassword struct {
@@ -216,7 +198,27 @@ func main() {
 			})
 		}
 	})
-	e.GET("/_api/gettemperature", getTemperature)
+	e.GET("/:devnum/_api/gettemperature", func(c echo.Context) error {
+		devnum, err := strconv.Atoi(c.Param("devnum"))
+		logrus.Debug(tokens)
+		if err != nil {
+			return c.JSON(http.StatusOK, map[string]interface{}{"code": 1100, "msg": "参数错误"})
+		}
+		status, cpu_tp, fanspeed, w24g_tp, w5g_tp := getTemperature(c, devnum)
+		if status {
+			return c.JSON(http.StatusOK, map[string]interface{}{
+				"code":     0,
+				"cpu":      cpu_tp,
+				"fanspeed": fanspeed,
+				"w24g":     w24g_tp,
+				"w5g":      w5g_tp,
+			})
+		}
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"code": 1103,
+			"msg":  "不支持该设备",
+		})
+	})
 	e.GET("/_api/getconfig", getconfig)
 	e.GET("/_api/quit", func(c echo.Context) error {
 		go func() {
