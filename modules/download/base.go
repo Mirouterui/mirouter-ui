@@ -12,14 +12,18 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func CheckAndDownloadStatic(basedirectory string) error {
+func DownloadStatic(basedirectory string, force bool) error {
 	directory := "static"
 	if basedirectory != "" {
 		directory = filepath.Join(basedirectory, "static")
 	}
+	if force {
+		//删除
+		os.RemoveAll(directory)
+	}
 
 	_, err := os.Stat(directory)
-	if os.IsNotExist(err) {
+	if os.IsNotExist(err) || force {
 		logrus.Info("正从'Mirouterui/static'下载静态资源")
 		resp, err := http.Get("http://mrui-api.hzchu.top/downloadstatic")
 		checkErr(err)

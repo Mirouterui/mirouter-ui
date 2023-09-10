@@ -57,26 +57,26 @@ func newhashPassword(pwd string, nonce string, key string) string {
 
 	return noncePwdKeyHashStr
 }
-func getrouterinfo(ip string) (bool, string) {
+func getrouterinfo(ip string) (bool, string, string) {
 
 	// 发送 GET 请求
 	ourl := fmt.Sprintf("http://%s/cgi-bin/luci/api/xqsystem/init_info", ip)
 	response, err := http.Get(ourl)
 	if err != nil {
-		return false, routername
+		return false, "", ""
 	}
 	defer response.Body.Close()
 	// 读取响应内容
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
-		return false, routername
+		return false, "", ""
 	}
 
 	// 解析 JSON
 	var data map[string]interface{}
 	err = json.Unmarshal(body, &data)
 	if err != nil {
-		return false, routername
+		return false, "", ""
 	}
 	//提取routername
 	routername = data["routername"].(string)
@@ -87,19 +87,19 @@ func getrouterinfo(ip string) (bool, string) {
 	newEncryptMode, ok := data["newEncryptMode"].(float64)
 	if !ok {
 		logrus.Debug("使用旧加密模式")
-		return false, routername
+		return false, routername, hardware
 	}
 
 	if newEncryptMode != 0 {
 		logrus.Debug("使用新加密模式")
 		logrus.Info("当前路由器可能无法正常获取某些数据！")
-		return true, routername
+		return true, routername, hardware
 	}
-	return false, routername
+	return false, routername, hardware
 }
-func GetToken(password string, key string, ip string) (string, string) {
+func GetToken(password string, key string, ip string) (string, string, string) {
 	logrus.Debug("获取路由器信息...")
-	newEncryptMode, routername := getrouterinfo(ip)
+	newEncryptMode, routername, hardware := getrouterinfo(ip)
 	logrus.Info("更新token...")
 	nonce := createNonce()
 	var hashedPassword string
@@ -139,5 +139,5 @@ func GetToken(password string, key string, ip string) (string, string) {
 		time.Sleep(5 * time.Second)
 		os.Exit(1)
 	}
-	return token, routername
+	return token, routername, hardware
 }

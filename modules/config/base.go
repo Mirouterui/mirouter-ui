@@ -81,7 +81,7 @@ func Getconfig() (dev []Dev, debug bool, port int, tiny bool, basedirectory stri
 	// logrus.Info(password)
 	// logrus.Info(key)
 	if tiny == false {
-		CheckAndDownloadStatic(basedirectory)
+		DownloadStatic(basedirectory, false)
 	}
 	if debug == true {
 		logrus.SetLevel(logrus.DebugLevel)
