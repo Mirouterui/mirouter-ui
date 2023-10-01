@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"io"
 	"main/modules/config"
+	"main/modules/download"
 	login "main/modules/login"
+	"main/modules/tp"
 	"net/http"
 	"os"
 	"os/exec"
@@ -33,6 +35,7 @@ var (
 	routerName    string
 	routerNames   map[int]string
 	hardware      string
+	hardwares     map[int]string
 	tiny          bool
 	routerunit    bool
 	dev           []config.Dev
@@ -52,80 +55,16 @@ type Config struct {
 }
 
 func init() {
-	dev, debug, port, tiny = config.Getconfig()
+	dev, debug, port, tiny, basedirectory = config.Getconfig()
 	tokens = make(map[int]string)
 	routerNames = make(map[int]string)
+	hardwares = make(map[int]string)
 }
 func GetCpuPercent() float64 {
 	percent, _ := cpu.Percent(time.Second, false)
 	return percent[0] / 100
 }
 
-// 红米AX6专用
-func getTemperature(c echo.Context) error {
-	if routerunit == false {
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"code": 1100,
-			"msg":  "未开启routerunit模式",
-		})
-	}
-	var cpu_out, w24g_out, w5g_out []byte
-	var err1, err2, err3 error
-	var cpu_tp, fanspeed, w24g_tp, w5g_tp string
-	switch hardware {
-	case "RA69":
-		cpu_cmd = exec.Command("cat", "/sys/class/thermal/thermal_zone0/temp")
-		w24g_cmd = exec.Command("cat", "/sys/class/ieee80211/phy0/device/net/wifi1/thermal/temp")
-		w5g_cmd = exec.Command("cat", "/sys/class/ieee80211/phy0/device/net/wifi0/thermal/temp")
-		cpu_out, err1 = cpu_cmd.Output()
-		w24g_out, err2 = w24g_cmd.Output()
-		w5g_out, err3 = w5g_cmd.Output()
-
-		cpu_tp = string(cpu_out)
-		fanspeed = "-233"
-		w24g_tp = string(w24g_out)
-		w5g_tp = string(w5g_out)
-	case "R1D":
-		type Ubus_data struct {
-			Fanspeed    string `json:"fanspeed"`
-			Temperature string `json:"temperature"`
-		}
-		cpu_cmd = exec.Command("ubus", "call", "rmonitor", "status")
-		cpu_out, err1 = cpu_cmd.Output()
-		var data Ubus_data
-		err := json.Unmarshal(cpu_out, &data)
-		if err != nil {
-			return c.JSON(http.StatusOK, map[string]interface{}{
-				"code": 1100,
-				"msg":  "JSON解析错误," + err.Error(),
-			})
-		}
-		cpu_tp = data.Temperature
-		fanspeed = data.Fanspeed
-		w24g_tp = "-233"
-		w5g_tp = "-233"
-	default:
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"code": 1101,
-			"msg":  "设备不支持",
-		})
-	}
-
-	if err1 != nil || err2 != nil || err3 != nil {
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"code": 1100,
-			"msg":  "获取温度失败,报错信息为" + err1.Error() + err2.Error() + err3.Error(),
-		})
-	}
-
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"code":             0,
-		"cpu_temperature":  cpu_tp,
-		"fanspeed":         fanspeed,
-		"w24g_temperature": w24g_tp,
-		"w5g_temperature":  w5g_tp,
-	})
-}
 func getconfig(c echo.Context) error {
 	type DevNoPassword struct {
 		Key        string `json:"key"`
@@ -149,14 +88,16 @@ func getconfig(c echo.Context) error {
 		"debug": debug,
 		// "token":      token,
 		"dev": devsNoPassword,
+		"ver": Version,
 	})
 }
 
 func gettoken(dev []config.Dev) {
 	for i, d := range dev {
-		token, routerName := login.GetToken(d.Password, d.Key, d.IP)
+		token, routerName, hardware := login.GetToken(d.Password, d.Key, d.IP)
 		tokens[i] = token
 		routerNames[i] = routerName
+		hardwares[i] = hardware
 		print(tokens[i])
 	}
 }
@@ -216,7 +157,27 @@ func main() {
 			})
 		}
 	})
-	e.GET("/_api/gettemperature", getTemperature)
+	e.GET("/:devnum/_api/gettemperature", func(c echo.Context) error {
+		devnum, err := strconv.Atoi(c.Param("devnum"))
+		logrus.Debug(tokens)
+		if err != nil {
+			return c.JSON(http.StatusOK, map[string]interface{}{"code": 1100, "msg": "参数错误"})
+		}
+		status, cpu_tp, fanspeed, w24g_tp, w5g_tp := tp.GetTemperature(c, devnum, hardwares[devnum])
+		if status {
+			return c.JSON(http.StatusOK, map[string]interface{}{
+				"code":     0,
+				"cpu":      cpu_tp,
+				"fanspeed": fanspeed,
+				"w24g":     w24g_tp,
+				"w5g":      w5g_tp,
+			})
+		}
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"code": 1103,
+			"msg":  "不支持该设备",
+		})
+	})
 	e.GET("/_api/getconfig", getconfig)
 	e.GET("/_api/quit", func(c echo.Context) error {
 		go func() {
@@ -226,6 +187,20 @@ func main() {
 		return c.JSON(http.StatusOK, map[string]interface{}{
 			"code": 0,
 			"msg":  "正在关闭",
+		})
+	})
+	e.GET("/_api/flushstatic", func(c echo.Context) error {
+		err := download.DownloadStatic(basedirectory, true)
+		if err != nil {
+			return c.JSON(http.StatusOK, map[string]interface{}{
+				"code": 1101,
+				"msg":  err,
+			})
+		}
+		logrus.Debugln("执行完成")
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"code": 0,
+			"msg":  "执行完成",
 		})
 	})
 

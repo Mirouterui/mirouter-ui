@@ -61,7 +61,7 @@
 
 
 
-#### 获取key和iv
+#### 获取key
 
 > 自动获取：[Mirouterui/MiKVIVator](https://github.com/Mirouterui/MiKVIVator)
 > ps:我在3个路由器上发现了一样的数值，已添加为默认值，如果无法登录再尝试更改吧
@@ -72,7 +72,7 @@
 
 复制双引号里的内容粘贴到`config.json`对应栏目中，并填上密码（路由器后台密码）
 
-![image](https://github.com/Mirouterui/mirouter-ui/assets/63234268/56edd993-2119-4979-bb2d-6f822f32059b)
+![image](https://github.com/Mirouterui/mirouter-ui/assets/63234268/e2f1a583-e271-484d-9597-e4beecdfeff4)
 
 
 > config.json 会在初次运行时自动下载
