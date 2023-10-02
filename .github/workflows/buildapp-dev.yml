@@ -32,12 +32,6 @@ jobs:
     - name: Run build script
       run: bash build.sh dev win
 
-    - name: upload artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: mirouter-ui-win
-        path: ./build/**
-
   build_linux:
     runs-on: ubuntu-latest
     steps:
@@ -59,12 +53,6 @@ jobs:
     - name: Run build script
       run: bash build.sh dev linux
 
-    - name: upload artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: mirouter-ui-linux
-        path: ./build/**
-
   build_darwin:
     runs-on: ubuntu-latest
     steps:
@@ -85,12 +73,6 @@ jobs:
     - name: Run build script
       run: bash build.sh dev darwin
 
-    - name: upload artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: mirouter-ui-darwin
-        path: ./build/**
-
   post_release:
     runs-on: ubuntu-latest
     needs: [build_win, build_linux, build_darwin]
@@ -105,24 +87,6 @@ jobs:
         with:
           name: mirouter-ui-linux
           path: ./build
-      - name: Download artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: mirouter-ui-darwin
-          path: ./build
-
-      - name: Upload Release Assets
-        run: |
-          for file in ./build/*; do
-            if [ -f "$file" ]; then
-              echo "Uploading $file"
-              curl \
-                -H "Authorization: token ${{ secrets.TOKEN }}" \
-                -H "Content-Type: $(file -b --mime-type $file)" \
-                --data-binary @"$file" \
-                "${{ steps.create_release.outputs.upload_url }}=$(basename $file)"
-            fi
-          done
         
   builddocker:
     runs-on: ubuntu-latest
