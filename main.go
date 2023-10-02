@@ -98,7 +98,7 @@ func gettoken(dev []config.Dev) {
 		tokens[i] = token
 		routerNames[i] = routerName
 		hardwares[i] = hardware
-		print(tokens[i])
+		logrus.Debug(hardwares[i])
 	}
 }
 func main() {
@@ -115,13 +115,11 @@ func main() {
 
 	e.GET("/:devnum/api/:apipath", func(c echo.Context) error {
 		devnum, err := strconv.Atoi(c.Param("devnum"))
-		logrus.Debug(tokens)
 		if err != nil {
 			return c.JSON(http.StatusOK, map[string]interface{}{"code": 1100, "msg": "参数错误"})
 		}
 		apipath := c.Param("apipath")
 		ip = dev[devnum].IP
-		logrus.Debug(ip)
 
 		switch apipath {
 
@@ -157,6 +155,7 @@ func main() {
 			})
 		}
 	})
+
 	e.GET("/:devnum/_api/gettemperature", func(c echo.Context) error {
 		devnum, err := strconv.Atoi(c.Param("devnum"))
 		logrus.Debug(tokens)
@@ -178,6 +177,7 @@ func main() {
 			"msg":  "不支持该设备",
 		})
 	})
+
 	e.GET("/_api/getconfig", getconfig)
 	e.GET("/_api/quit", func(c echo.Context) error {
 		go func() {
