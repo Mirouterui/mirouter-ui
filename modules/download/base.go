@@ -83,6 +83,6 @@ func unzip(src, dest string) error {
 
 func checkErr(err error) {
 	if err != nil {
-		logrus.Debug(err)
+		logrus.Panic(err)
 	}
 }

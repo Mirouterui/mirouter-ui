@@ -1,4 +1,4 @@
-name: Build and Release
+name: Build DEV version
 run-name: Build DEV version
 
 permissions: write-all
@@ -73,20 +73,7 @@ jobs:
     - name: Run build script
       run: bash build.sh dev darwin
 
-  post_release:
-    runs-on: ubuntu-latest
-    needs: [build_win, build_linux, build_darwin]
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: mirouter-ui-win
-          path: ./build
-      - name: Download artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: mirouter-ui-linux
-          path: ./build
+
         
   builddocker:
     runs-on: ubuntu-latest
