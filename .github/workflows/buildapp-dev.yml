@@ -111,17 +111,6 @@ jobs:
           name: mirouter-ui-darwin
           path: ./build
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
-        with:
-          tag_name: vdev
-          release_name: Release dev
-          draft: true
-          prerelease: false
-
       - name: Upload Release Assets
         run: |
           for file in ./build/*; do
