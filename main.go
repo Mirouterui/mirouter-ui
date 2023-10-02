@@ -132,7 +132,7 @@ func main() {
 			if err != nil {
 				return c.JSON(http.StatusOK, map[string]interface{}{
 					"code": 1101,
-					"msg":  "MiRouter的api调用出错，请检查配置或路由器状态",
+					"msg":  "小米路由器的api调用出错，请检查配置或路由器状态",
 				})
 			}
 			defer resp.Body.Close()
@@ -140,7 +140,7 @@ func main() {
 			var result map[string]interface{}
 			json.Unmarshal(body, &result)
 
-			if routerunit || apipath == "misystem/status" {
+			if routerunit && apipath == "misystem/status" {
 				cpuPercent := GetCpuPercent()
 				if cpu, ok := result["cpu"].(map[string]interface{}); ok {
 					cpu["load"] = cpuPercent

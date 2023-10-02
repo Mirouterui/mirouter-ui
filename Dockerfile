@@ -6,7 +6,7 @@ COPY . .
 
 RUN go mod download
 
-RUN go build -o main .
+RUN go build -ldflags "-X 'main.Version=Docker'"  -o main .
 
 FROM alpine:3.18
 
