@@ -22,6 +22,7 @@ then
 
     echo "Building win_arm64"
     GOOS=windows GOARCH=arm64 go build -ldflags "-X 'main.Version=$VERSION'" -o $OUTPUT_DIR/mirouterui_win_arm64_noupx_$VERSION.exe main.go
+
     # rm main.exe
 fi
 

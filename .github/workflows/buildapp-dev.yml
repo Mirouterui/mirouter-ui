@@ -73,7 +73,6 @@ jobs:
     - name: Run build script
       run: bash build.sh dev darwin
 
-
         
   builddocker:
     runs-on: ubuntu-latest
