@@ -27,7 +27,7 @@ var (
 	historyEnable  bool
 	Version        string
 	dev            []Dev
-	maxdeleted     int64
+	maxsaved       int64
 	flushTokenTime int64
 	sampletime     int64
 )
@@ -39,10 +39,9 @@ type Dev struct {
 	RouterUnit bool   `json:"routerunit"`
 }
 type History struct {
-	Enable       bool   `json:"enable"`
-	MaxDeleted   int64  `json:"maxdeleted"`
-	Databasepath string `json:"databasepath"`
-	Sampletime   int64  `json:"sampletime"`
+	Enable     bool  `json:"enable"`
+	MaxDeleted int64 `json:"maxsaved"`
+	Sampletime int64 `json:"sampletime"`
 }
 type Config struct {
 	Dev            []Dev   `json:"dev"`
@@ -53,18 +52,19 @@ type Config struct {
 	FlushTokenTime int64   `json:"flushTokenTime"`
 }
 
-func GetConfigInfo() (dev []Dev, debug bool, port int, tiny bool, basedirectory string, databasepath string, flushTokenTime int64, maxdeleted int64, historyEnable bool, sampletime int64) {
+func GetConfigInfo() (dev []Dev, debug bool, port int, tiny bool, basedirectory string, flushTokenTime int64, databasepath string, maxsaved int64, historyEnable bool, sampletime int64) {
 	flag.StringVar(&configPath, "config", "", "配置文件路径")
 	flag.StringVar(&basedirectory, "basedirectory", "", "基础目录路径")
+	flag.StringVar(&databasepath, "databasepath", "", "数据库路径")
 	flag.Parse()
+	appPath, err := os.Executable()
+	checkErr(err)
 	if configPath == "" {
-		appPath, err := os.Executable()
-		if err != nil {
-			panic(err)
-		}
 		configPath = filepath.Join(filepath.Dir(appPath), "config.json")
 	}
-
+	if databasepath == "" {
+		databasepath = filepath.Join(filepath.Dir(appPath), "database.db")
+	}
 	logrus.Info("配置文件路径为:" + configPath)
 	data, err := os.ReadFile(configPath)
 	if err != nil {
@@ -91,8 +91,7 @@ func GetConfigInfo() (dev []Dev, debug bool, port int, tiny bool, basedirectory 
 	debug = config.Debug
 	port = config.Port
 	tiny = config.Tiny
-	databasepath = config.History.Databasepath
-	maxdeleted = config.History.MaxDeleted
+	maxsaved = config.History.MaxDeleted
 	historyEnable = config.History.Enable
 	sampletime = config.History.Sampletime
 	flushTokenTime = config.FlushTokenTime
@@ -113,7 +112,7 @@ func GetConfigInfo() (dev []Dev, debug bool, port int, tiny bool, basedirectory 
 		time.Sleep(5 * time.Second)
 		os.Exit(1)
 	}
-	return dev, debug, port, tiny, basedirectory, databasepath, flushTokenTime, maxdeleted, historyEnable, sampletime
+	return dev, debug, port, tiny, basedirectory, flushTokenTime, databasepath, maxsaved, historyEnable, sampletime
 }
 
 func checkErr(err error) {

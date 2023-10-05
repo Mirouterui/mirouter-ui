@@ -6,11 +6,9 @@
         "routerunit": false
     }],
     "history": {
-        "enable": true,
+        "enable": false,
         "sampletime": 300,
-        "maxdeleted": 360,
-        "databasepath": "./database.db"
-
+        "maxsaved": 8640
     },
     "flushTokenTime": 1800,
     "tiny": false,

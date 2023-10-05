@@ -48,7 +48,7 @@ var (
 	Version        string
 	databasepath   string
 	flushTokenTime int64
-	maxdeleted     int64
+	maxsaved       int64
 	historyEnable  bool
 	sampletime     int64
 )
@@ -62,7 +62,7 @@ type Config struct {
 }
 
 func init() {
-	dev, debug, port, tiny, basedirectory, databasepath, flushTokenTime, maxdeleted, historyEnable, sampletime = config.GetConfigInfo()
+	dev, debug, port, tiny, basedirectory, flushTokenTime, databasepath, maxsaved, historyEnable, sampletime = config.GetConfigInfo()
 	tokens = make(map[int]string)
 	routerNames = make(map[int]string)
 	hardwares = make(map[int]string)
@@ -78,7 +78,12 @@ func getconfig(c echo.Context) error {
 		IP         string `json:"ip"`
 		RouterUnit bool   `json:"routerunit"`
 	}
-
+	type History struct {
+		Enable       bool   `json:"enable"`
+		MaxDeleted   int64  `json:"maxsaved"`
+		Databasepath string `json:"databasepath"`
+		Sampletime   int64  `json:"sampletime"`
+	}
 	devsNoPassword := []DevNoPassword{}
 	for _, d := range dev {
 		devNoPassword := DevNoPassword{
@@ -88,14 +93,21 @@ func getconfig(c echo.Context) error {
 		}
 		devsNoPassword = append(devsNoPassword, devNoPassword)
 	}
+	history := History{}
+	history.Enable = historyEnable
+	history.MaxDeleted = maxsaved
+	history.Databasepath = databasepath
+	history.Sampletime = sampletime
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"code":  0,
 		"tiny":  tiny,
 		"port":  port,
 		"debug": debug,
 		// "token":      token,
-		"dev": devsNoPassword,
-		"ver": Version,
+		"dev":            devsNoPassword,
+		"history":        history,
+		"flushTokenTime": flushTokenTime,
+		"ver":            Version,
 	})
 }
 
@@ -192,6 +204,12 @@ func main() {
 		if err != nil {
 			return c.JSON(http.StatusOK, map[string]interface{}{"code": 1100, "msg": "参数错误"})
 		}
+		if !historyEnable {
+			return c.JSON(http.StatusOK, map[string]interface{}{
+				"code": 1101,
+				"msg":  "历史数据未开启",
+			})
+		}
 		history := database.Getdata(databasepath, routernum)
 		return c.JSON(http.StatusOK, history)
 	})
@@ -244,7 +262,7 @@ func main() {
 	if historyEnable {
 		go func() {
 			for range time.Tick(time.Duration(sampletime) * time.Second) {
-				database.Savetodb(databasepath, dev, tokens, maxdeleted)
+				database.Savetodb(databasepath, dev, tokens, maxsaved)
 			}
 		}()
 	}

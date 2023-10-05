@@ -2,18 +2,19 @@
 
 ## Mirouter-ui
 
-> 🕊️ 基于小米路由器API的展示面板
+> 😎 基于小米路由器API的展示面板
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/thun888/mirouter-ui)](https://hub.docker.com/r/thun888/mirouter-ui)
 [![Release And Docker](https://github.com/Mirouterui/mirouter-ui/actions/workflows/buildapp.yml/badge.svg)](https://github.com/Mirouterui/mirouter-ui/actions/workflows/buildapp.yml)
+[![Build DEV version](https://github.com/Mirouterui/mirouter-ui/actions/workflows/buildapp-dev.yml/badge.svg)](https://github.com/Mirouterui/mirouter-ui/actions/workflows/buildapp-dev.yml)
 
 将本程序部署在小米路由器的网络环境中，配置完成即可食用
 
-后端基于Golang，多平台兼容
+后端基于`Golang`，多平台兼容
 
 已在小米路由器R1D,R4A上测试通过
 
-部分新路由无法获取cpu占用，如红米AX6000,AX1800。可在路由器上运行解决
+部分新路由无法获取cpu占用，如红米AX6000,AX1800。可在路由器上运行解决。
 
 ## 图片展示
 
@@ -38,7 +39,9 @@
 
 ![Snipaste_2023-08-25_13-33-54](https://github.com/Mirouterui/mirouter-ui/assets/63234268/0926dafd-a63e-4ee6-bc61-f381c1dfc199)
 
+#### 历史数据统计
 
+![history_index](./otherfile/images/history_index.png)
 ## 部署
 
 ### Docker
@@ -72,7 +75,7 @@
 
 复制双引号里的内容粘贴到`config.json`对应栏目中，并填上密码（路由器后台密码）
 
-![image](https://github.com/Mirouterui/mirouter-ui/assets/63234268/e2f1a583-e271-484d-9597-e4beecdfeff4)
+![image](./otherfile/images/config.png)
 
 
 > config.json 会在初次运行时自动下载
@@ -83,7 +86,9 @@
 | 配置名 | 默认值 | 解释                                                         |
 | ------ | ------ | ------------------------------------------------------------ |
 | dev    | []     | 路由器信息，参阅`dev项`                                      |
+| history    |      | 历史记录相关功能，参阅`history项`                                      |
 | tiny   | false  | 启用后，不再下载静态文件，需搭配[在线前端](http://mrui.hzchu.top:8880/)使用 |
+| flushTokenTime | 1800 | 刷新token时间间隔(s) |
 | port   | 6789   | 网页页面端口号                                               |
 | debug  | true   | debug模式，建议在测试正常后关闭                              |
 
@@ -96,13 +101,21 @@
 | ip         | 192.168.31.1                     | 路由器IP                                |
 | routerunit | false                            | 启用后，程序通过`gopsutil`库获取CPU占用 |
 
+**history**项：
+
+| 配置名     | 默认值                           | 解释                                    |
+| ---------- | -------------------------------- | --------------------------------------- |
+| enable   |    false                              | 是否启用历史数据统计                      |
+| sampletime        | 300 | 采样时间间隔(s)                    |
+| maxsaved         | 8640                     | 最多记录条数                                |
+
 命令行参数：
 
 | 参数            | 解释                             |
 | --------------- | -------------------------------- |
-| --config        | 配置文件路径                     |
+| --config        | 配置文件路径，默认为“./config.json”  |
 | --basedirectory | 基础目录路径，在里面存放静态文件 |
-
+| --databasepath | 数据库路径，默认为“./database.db” |
 
 
 然后运行程序
@@ -120,6 +133,16 @@
 [Linux命令后台运行_后台运行命令_拉普拉斯妖1228的博客-CSDN博客](https://blog.csdn.net/caesar1228/article/details/118853871)
 
 [windows守护进程工具--nssm详解 - 与f - 博客园 (cnblogs.com)](https://www.cnblogs.com/fps2tao/p/16433588.html)
+
+### Todo
+
+- [x] 历史数据统计
+- [x] 深色模式
+- [x] 多路由支持
+- [x] 快捷更新
+- [ ] 设备小工具
+
+> 主要功能已完成开发,接下来随缘更新😶‍🌫️
 
 ## Stars~
 

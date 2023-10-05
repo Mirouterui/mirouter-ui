@@ -20,7 +20,7 @@ type History struct {
 	gorm.Model
 	Ip        string
 	RouterNum int
-	CPU       float64
+	Cpu       float64
 	Cpu_tp    int
 	Mem       float64
 	UpSpeed   float64
@@ -61,8 +61,8 @@ func CheckDatabase(databasepath string) {
 // - databasepath: the path to the database.
 // - dev: an array of device configurations.
 // - tokens: a map of token IDs to strings.
-// - maxdeleted: the maximum number of records to delete.
-func Savetodb(databasepath string, dev []config.Dev, tokens map[int]string, maxdeleted int64) {
+// - maxsaved: the maximum number of records to delete.
+func Savetodb(databasepath string, dev []config.Dev, tokens map[int]string, maxsaved int64) {
 	db, err := gorm.Open(sqlite.Open(databasepath), &gorm.Config{})
 	checkErr(err)
 	for i, d := range dev {
@@ -71,7 +71,7 @@ func Savetodb(databasepath string, dev []config.Dev, tokens map[int]string, maxd
 		cpu, cpu_tp, mem, upSpeed, downSpeed, upTotal, downTotal, deviceNum := getDeviceStats(i, tokens, ip)
 		var count int64
 		db.Model(&History{}).Where("router_num = ?", routerNum).Count(&count)
-		if count >= maxdeleted {
+		if count >= maxsaved {
 			logrus.Debug("删除历史数据")
 			db.Exec("DELETE FROM histories WHERE router_num = ? AND created_at = (SELECT MIN(created_at) FROM histories WHERE router_num = ? );", routerNum, routerNum)
 
@@ -79,7 +79,7 @@ func Savetodb(databasepath string, dev []config.Dev, tokens map[int]string, maxd
 		db.Create(&History{
 			Ip:        ip,
 			RouterNum: routerNum,
-			CPU:       cpu,
+			Cpu:       cpu,
 			Cpu_tp:    cpu_tp,
 			Mem:       mem,
 			UpSpeed:   upSpeed,
@@ -107,8 +107,8 @@ func Getdata(databasepath string, routernum int) []History {
 // - ip: The IP address of the router.
 //
 // Returns:
-// - cpuload: The CPU load.
-// - cpu_tp: The CPU temperature.
+// - cpuload: The Cpu load.
+// - cpu_tp: The Cpu temperature.
 // - memusage: The memory usage.
 // - upspeed: The upload speed.
 // - downspeed: The download speed.
