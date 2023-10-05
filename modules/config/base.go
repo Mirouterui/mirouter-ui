@@ -14,17 +14,22 @@ import (
 )
 
 var (
-	password      string
-	key           string
-	ip            string
-	debug         bool
-	port          int
-	tiny          bool
-	routerunit    bool
-	configPath    string
-	basedirectory string
-	Version       string
-	dev           []Dev
+	password       string
+	key            string
+	ip             string
+	debug          bool
+	port           int
+	tiny           bool
+	routerunit     bool
+	configPath     string
+	basedirectory  string
+	databasepath   string
+	historyEnable  bool
+	Version        string
+	dev            []Dev
+	maxdeleted     int64
+	flushTokenTime int64
+	sampletime     int64
 )
 
 type Dev struct {
@@ -33,14 +38,22 @@ type Dev struct {
 	IP         string `json:"ip"`
 	RouterUnit bool   `json:"routerunit"`
 }
+type History struct {
+	Enable       bool   `json:"enable"`
+	MaxDeleted   int64  `json:"maxdeleted"`
+	Databasepath string `json:"databasepath"`
+	Sampletime   int64  `json:"sampletime"`
+}
 type Config struct {
-	Dev   []Dev `json:"dev"`
-	Debug bool  `json:"debug"`
-	Port  int   `json:"port"`
-	Tiny  bool  `json:"tiny"`
+	Dev            []Dev   `json:"dev"`
+	History        History `json:"history"`
+	Debug          bool    `json:"debug"`
+	Port           int     `json:"port"`
+	Tiny           bool    `json:"tiny"`
+	FlushTokenTime int64   `json:"flushTokenTime"`
 }
 
-func Getconfig() (dev []Dev, debug bool, port int, tiny bool, basedirectory string) {
+func GetConfigInfo() (dev []Dev, debug bool, port int, tiny bool, basedirectory string, databasepath string, flushTokenTime int64, maxdeleted int64, historyEnable bool, sampletime int64) {
 	flag.StringVar(&configPath, "config", "", "配置文件路径")
 	flag.StringVar(&basedirectory, "basedirectory", "", "基础目录路径")
 	flag.Parse()
@@ -78,6 +91,11 @@ func Getconfig() (dev []Dev, debug bool, port int, tiny bool, basedirectory stri
 	debug = config.Debug
 	port = config.Port
 	tiny = config.Tiny
+	databasepath = config.History.Databasepath
+	maxdeleted = config.History.MaxDeleted
+	historyEnable = config.History.Enable
+	sampletime = config.History.Sampletime
+	flushTokenTime = config.FlushTokenTime
 	// logrus.Info(password)
 	// logrus.Info(key)
 	if tiny == false {
@@ -95,7 +113,7 @@ func Getconfig() (dev []Dev, debug bool, port int, tiny bool, basedirectory stri
 		time.Sleep(5 * time.Second)
 		os.Exit(1)
 	}
-	return dev, debug, port, tiny, basedirectory
+	return dev, debug, port, tiny, basedirectory, databasepath, flushTokenTime, maxdeleted, historyEnable, sampletime
 }
 
 func checkErr(err error) {
