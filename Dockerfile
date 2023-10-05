@@ -16,4 +16,4 @@ COPY --from=builder /app/main /app/main
 
 EXPOSE 6789
 
-CMD ["./main","--config=/app/data/config.json","--basedirectory=/app/data/"]
+CMD ["./main","--config=/app/data/config.json","--basedirectory=/app/data/","--databasepath=/app/data/database.db"]
