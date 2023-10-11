@@ -97,6 +97,6 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
-          platforms: linux/amd64,linux/386,linux/arm64
+          platforms: linux/amd64,linux/386,linux/arm64,linux/armv7l
           push: true
           tags: thun888/mirouter-ui:dev
