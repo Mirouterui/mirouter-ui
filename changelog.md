@@ -1,4 +1,27 @@
-### 2023/10/2
+### 2023/10/06
+`A`支持历史数据统计
+
+**注意**：由于libc的问题，在以下架构上不适用
+    win_i386
+    linux_mips
+    linux_mipsle
+    
+
+可下载v1.1.5版本，手动从[这里](https://raw.githubusercontent.com/Mirouterui/mirouter-ui/9526bb3f59188029544e0e88201969eb9677a087/config.json)下载配置文件并修改
+
+### 2023/10/05
+
+`A`支持历史数据统计
+
+**注意**：由于libc的问题，在以下架构上不适用
+    win_i386
+    linux_mips
+    linux_mipsle
+    
+
+可下载v1.1.5版本，手动从[这里](https://raw.githubusercontent.com/Mirouterui/mirouter-ui/9526bb3f59188029544e0e88201969eb9677a087/config.json)下载配置文件并修改
+
+### 2023/10/02
 
 `A`完善多IP处理
 
