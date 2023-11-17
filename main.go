@@ -145,7 +145,7 @@ func main() {
 		case "xqsystem/router_name":
 			return c.JSON(http.StatusOK, map[string]interface{}{"code": 0, "routerName": routerNames[routernum]})
 
-		case "misystem/status", "misystem/devicelist", "xqsystem/internet_connect", "xqsystem/fac_info", "misystem/messages":
+		case "misystem/status", "misystem/devicelist", "xqsystem/internet_connect", "xqsystem/fac_info", "misystem/messages", "xqsystem/upnp":
 			url := fmt.Sprintf("http://%s/cgi-bin/luci/;stok=%s/api/%s", ip, tokens[routernum], apipath)
 			resp, err := http.Get(url)
 			if err != nil {
@@ -229,6 +229,15 @@ func main() {
 		})
 	})
 
+	e.GET("/_api/refresh", func(c echo.Context) error {
+		go func() {
+			gettoken(dev)
+		}()
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"code": 0,
+			"msg":  "已开始刷新",
+		})
+	})
 	e.GET("/_api/quit", func(c echo.Context) error {
 		go func() {
 			time.Sleep(1 * time.Second)

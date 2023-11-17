@@ -128,7 +128,13 @@ func GetToken(password string, key string, ip string) (string, string, string) {
 	body, _ := io.ReadAll(resp.Body)
 	var result map[string]interface{}
 	json.Unmarshal(body, &result)
-	code := int(result["code"].(float64))
+	var code int
+	if result["code"] != nil {
+		code = int(result["code"].(float64))
+	} else {
+		logrus.Info("路由器登录请求返回值为空！请检查配置")
+	}
+
 	if code == 0 {
 		logrus.Debug("当前token为:" + fmt.Sprint(result["token"]))
 		token = result["token"].(string)
