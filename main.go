@@ -37,6 +37,7 @@ var (
 	routerNames    map[int]string
 	hardware       string
 	hardwares      map[int]string
+	routerunits    map[int]bool
 	tiny           bool
 	routerunit     bool
 	dev            []config.Dev
@@ -66,6 +67,7 @@ func init() {
 	tokens = make(map[int]string)
 	routerNames = make(map[int]string)
 	hardwares = make(map[int]string)
+	routerunits = make(map[int]bool)
 }
 func GetCpuPercent() float64 {
 	percent, _ := cpu.Percent(time.Second, false)
@@ -117,12 +119,17 @@ func gettoken(dev []config.Dev) {
 		tokens[i] = token
 		routerNames[i] = routerName
 		hardwares[i] = hardware
+		routerunits[i] = d.RouterUnit
 		logrus.Debug(hardwares[i])
 	}
 }
 func main() {
 	e := echo.New()
 	e.Use(middleware.Recover())
+	// 输出访问日志
+	if debug {
+		e.Use(middleware.Logger())
+	}
 	// e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 	// 	return func(c echo.Context) error {
 	// 		c.Response().Header().Set("Access-Control-Allow-Private-Network", "true")
@@ -159,7 +166,7 @@ func main() {
 			var result map[string]interface{}
 			json.Unmarshal(body, &result)
 
-			if routerunit && apipath == "misystem/status" {
+			if routerunits[routernum] && apipath == "misystem/status" {
 				cpuPercent := GetCpuPercent()
 				if cpu, ok := result["cpu"].(map[string]interface{}); ok {
 					cpu["load"] = cpuPercent
