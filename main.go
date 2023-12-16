@@ -218,7 +218,11 @@ func main() {
 			})
 		}
 		history := database.Getdata(databasepath, routernum)
-		return c.JSON(http.StatusOK, history)
+
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"code":    0,
+			"history": history,
+		})
 	})
 
 	e.GET("/_api/flushstatic", func(c echo.Context) error {

@@ -31,7 +31,7 @@
 
 ![device_index](https://github.com/thun888/mirouter-ui/assets/63234268/20c465e1-660b-41bf-a200-973423057d31)
 
-#### 路由器状态
+#### 路由器详情
 
 ![router_index](https://github.com/thun888/mirouter-ui/assets/63234268/1ddce346-7abd-4816-bc55-fe55d3dc70c9)
 
@@ -86,7 +86,7 @@
 | 配置名 | 默认值 | 解释                                                         |
 | ------ | ------ | ------------------------------------------------------------ |
 | dev    | []     | 路由器信息，参阅`dev项`                                      |
-| history    |      | 历史记录相关功能，参阅`history项`                                      |
+| history    | [] | 历史记录相关功能，参阅`history项`                                      |
 | tiny   | false  | 启用后，不再下载静态文件，需搭配[在线前端](http://mrui.hzchu.top:8880/)使用 |
 | flushTokenTime | 1800 | 刷新token时间间隔(s) |
 | port   | 6789   | 网页页面端口号                                               |
@@ -118,11 +118,7 @@
 | --databasepath | 数据库路径，默认为“./database.db” |
 
 
-然后运行程序
-
-如果遇到防火墙提示请勾上两个勾并确定
-
-![image](https://github.com/thun888/mirouter-ui/assets/63234268/fc6a7515-6e65-48be-9bbd-1de1eac41146)
+然后运行即可
 
 此时命令窗口中会显示网页的访问端口，使用设备的`ip地址+端口号(6789)`访问面板
 
@@ -141,6 +137,7 @@
 - [x] 多路由支持
 - [x] 快捷更新
 - [ ] 设备小工具
+- [ ] netdata，api形式兼容
 
 > 主要功能已完成开发,接下来随缘更新😶‍🌫️
 
