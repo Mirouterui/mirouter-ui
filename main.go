@@ -9,6 +9,7 @@ import (
 	"main/modules/database"
 	"main/modules/download"
 	login "main/modules/login"
+	"main/modules/netdata"
 	"main/modules/tp"
 	"net/http"
 	"os"
@@ -21,37 +22,38 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/robfig/cron/v3"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/sirupsen/logrus"
 )
 
 var (
-	password       string
-	key            string
-	ip             string
-	token          string
-	tokens         map[int]string
-	debug          bool
-	port           int
-	routerName     string
-	routerNames    map[int]string
-	hardware       string
-	hardwares      map[int]string
-	routerunits    map[int]bool
-	tiny           bool
-	routerunit     bool
-	dev            []config.Dev
-	cpu_cmd        *exec.Cmd
-	w24g_cmd       *exec.Cmd
-	w5g_cmd        *exec.Cmd
-	configPath     string
-	basedirectory  string
-	Version        string
-	databasepath   string
-	flushTokenTime int64
-	maxsaved       int64
-	historyEnable  bool
-	sampletime     int64
+	password          string
+	key               string
+	token             string
+	tokens            map[int]string
+	debug             bool
+	port              int
+	routerName        string
+	routerNames       map[int]string
+	hardware          string
+	hardwares         map[int]string
+	routerunits       map[int]bool
+	tiny              bool
+	routerunit        bool
+	dev               []config.Dev
+	cpu_cmd           *exec.Cmd
+	w24g_cmd          *exec.Cmd
+	w5g_cmd           *exec.Cmd
+	configPath        string
+	basedirectory     string
+	Version           string
+	databasepath      string
+	flushTokenTime    int
+	maxsaved          int
+	historyEnable     bool
+	sampletime        int
+	netdata_routernum int
 )
 
 type Config struct {
@@ -63,7 +65,7 @@ type Config struct {
 }
 
 func init() {
-	dev, debug, port, tiny, basedirectory, flushTokenTime, databasepath, maxsaved, historyEnable, sampletime = config.GetConfigInfo()
+	dev, debug, port, tiny, basedirectory, flushTokenTime, databasepath, maxsaved, historyEnable, sampletime, netdata_routernum = config.GetConfigInfo()
 	tokens = make(map[int]string)
 	routerNames = make(map[int]string)
 	hardwares = make(map[int]string)
@@ -82,9 +84,9 @@ func getconfig(c echo.Context) error {
 	}
 	type History struct {
 		Enable       bool   `json:"enable"`
-		MaxDeleted   int64  `json:"maxsaved"`
+		MaxDeleted   int    `json:"maxsaved"`
 		Databasepath string `json:"databasepath"`
-		Sampletime   int64  `json:"sampletime"`
+		Sampletime   int    `json:"sampletime"`
 	}
 	devsNoPassword := []DevNoPassword{}
 	for _, d := range dev {
@@ -124,7 +126,10 @@ func gettoken(dev []config.Dev) {
 	}
 }
 func main() {
+	starttime := int(time.Now().Unix())
+	logrus.Info("当前后端版本为：" + Version)
 	e := echo.New()
+	c := cron.New()
 	e.Use(middleware.Recover())
 	// 输出访问日志
 	if debug {
@@ -145,7 +150,7 @@ func main() {
 			return c.JSON(http.StatusOK, map[string]interface{}{"code": 1100, "msg": "参数错误"})
 		}
 		apipath := c.Param("apipath")
-		ip = dev[routernum].IP
+		ip := dev[routernum].IP
 
 		switch apipath {
 
@@ -204,6 +209,180 @@ func main() {
 		})
 	})
 
+	e.GET("/api/v1/data", func(c echo.Context) error {
+		chart := c.QueryParam("chart")
+		dimensions := c.QueryParam("dimensions")
+
+		ip := dev[netdata_routernum].IP
+		token := tokens[netdata_routernum]
+		cpuLoad, memAvailable, _, _, upSpeed, downSpeed, temperature, deviceOnline, _, _ := netdata.ProcessData(ip, token)
+
+		switch chart {
+
+		case "system.cpu":
+			if routerunits[netdata_routernum] {
+				cpuLoad = int(GetCpuPercent() * 100)
+			}
+			data := netdata.GenerateArray("system.cpu", cpuLoad, starttime, "system.cpu", "system.cpu")
+			return c.JSON(http.StatusOK, data)
+		case "mem.available":
+			data := netdata.GenerateArray("mem.available", memAvailable, starttime, "avail", "MemAvailable")
+			return c.JSON(http.StatusOK, data)
+		case "device.online":
+			data := netdata.GenerateArray("device.online", deviceOnline, starttime, "online", "online")
+			return c.JSON(http.StatusOK, data)
+		case "net.eth0":
+			if dimensions == "received" {
+				data := netdata.GenerateArray("net.eth0", downSpeed, starttime, "received", "received")
+				return c.JSON(http.StatusOK, data)
+			}
+			if dimensions == "sent" {
+				data := netdata.GenerateArray("net.eth0", -upSpeed, starttime, "sent", "sent")
+				return c.JSON(http.StatusOK, data)
+			}
+			return c.String(http.StatusOK, "缺失参数")
+		case "sensors.temp_thermal_zone0_thermal_thermal_zone0":
+			data := netdata.GenerateArray("sensors.temp_thermal_zone0_thermal_thermal_zone0", temperature, starttime, "temperature", "temperature")
+			return c.JSON(http.StatusOK, data)
+		default:
+			return c.JSON(http.StatusOK, map[string]interface{}{
+				"code": 1102,
+				"msg":  "该图表数据不支持",
+			})
+		}
+	})
+	// 没用
+	// e.GET("/api/v1/charts", func(c echo.Context) error {
+	// 	ip := dev[netdata_routernum].IP
+	// 	token := tokens[netdata_routernum]
+	// 	cpuLoad, memAvailable, memTotal, memUsage, upSpeed, downSpeed, temperature, deviceonline := netdata.ProcessData(ip, token)
+	// 	cpuLoadData := netdata.GenerateDataForAllMetrics("system.cpu", "cpu", "percentage", cpuLoad, "used")
+	// 	memAvailableData := netdata.GenerateDataForAllMetrics("mem.available", "mem", "bytes", memAvailable, "used")
+	// 	memTotalData := netdata.GenerateDataForAllMetrics("mem.total", "mem", "bytes", memTotal, "used")
+	// 	memUsageData := netdata.GenerateDataForAllMetrics("mem.used", "mem", "percentage", memUsage, "used")
+	// 	upSpeedData := netdata.GenerateDataForAllMetrics("net.eth0.receivedspeed", "net", "bytes", upSpeed, "received")
+	// 	downSpeedData := netdata.GenerateDataForAllMetrics("net.eth0.sentspeed", "net", "bytes", downSpeed, "sent")
+	// 	temperatureData := netdata.GenerateDataForAllMetrics("sensors.temp_thermal_zone0_thermal_thermal_zone0", "sensors", "celsius", temperature, "temperature")
+	// 	deviceonlineData := netdata.GenerateDataForAllMetrics("device.online", "device", "count", deviceonline, "online")
+	// 	charts := map[string]interface{}{
+	// 		"system.cpu":             cpuLoadData,
+	// 		"mem.available":          memAvailableData,
+	// 		"mem.total":              memTotalData,
+	// 		"mem.used":               memUsageData,
+	// 		"net.eth0.receivedspeed": upSpeedData,
+	// 		"net.eth0.sentspeed":     downSpeedData,
+	// 		"device.online":          deviceonlineData,
+	// 		"sensors.temp_thermal_zone0_thermal_thermal_zone0": temperatureData,
+	// 	}
+	// 	data := map[string]interface{}{
+	// 		"hostname":        routerNames[netdata_routernum],
+	// 		"version":         "v1.29.3",
+	// 		"release_channel": "stable",
+	// 		"os":              "linux",
+	// 		"timezone":        "Asia/Shanghai",
+	// 		"update_every":    1,
+	// 		"history":         3996,
+	// 		"memory_mode":     "dbengine",
+	// 		"custom_info":     "",
+	// 		"charts":          charts,
+	// 	}
+
+	// 	return c.JSON(http.StatusOK, data)
+
+	// })
+
+	// 应付HA用
+	e.GET("/api/v1/allmetrics?format=json&help=no&types=no&timestamps=yes&names=yes&data=average", func(c echo.Context) error {
+		ip := dev[netdata_routernum].IP
+		token := tokens[netdata_routernum]
+		cpuLoad, memAvailable, memTotal, memUsage, upSpeed, downSpeed, temperature, deviceonline, uploadtotal, downloadtotal := netdata.ProcessData(ip, token)
+		cpuLoadData := netdata.GenerateDataForAllMetrics("system.cpu", "cpu", "percentage", cpuLoad, "used")
+		memAvailableData := netdata.GenerateDataForAllMetrics("mem.available", "mem", "bytes", memAvailable, "used")
+		memTotalData := netdata.GenerateDataForAllMetrics("mem.total", "mem", "bytes", memTotal, "used")
+		memUsageData := netdata.GenerateDataForAllMetrics("mem.used", "mem", "percentage", memUsage, "used")
+		upSpeedData := netdata.GenerateDataForAllMetrics("net.eth0.receivedspeed", "net", "bytes", upSpeed, "received")
+		downSpeedData := netdata.GenerateDataForAllMetrics("net.eth0.sentspeed", "net", "bytes", downSpeed, "sent")
+		temperatureData := netdata.GenerateDataForAllMetrics("sensors.temp_thermal_zone0_thermal_thermal_zone0", "sensors", "celsius", temperature, "temperature")
+		deviceonlineData := netdata.GenerateDataForAllMetrics("device.online", "device", "count", deviceonline, "online")
+		uploadtotalData := netdata.GenerateDataForAllMetrics("net.eth0.sent", "net", "bytes", uploadtotal, "total")
+		downloadtotalData := netdata.GenerateDataForAllMetrics("net.eth0.received", "net", "bytes", downloadtotal, "total")
+		data := map[string]interface{}{
+			"system.cpu":             cpuLoadData,
+			"mem.available":          memAvailableData,
+			"mem.total":              memTotalData,
+			"mem.used":               memUsageData,
+			"net.eth0.receivedspeed": upSpeedData,
+			"net.eth0.sentspeed":     downSpeedData,
+			"device.online":          deviceonlineData,
+			"net.eth0.sent":          uploadtotalData,
+			"net.eth0.received":      downloadtotalData,
+			"sensors.temp_thermal_zone0_thermal_thermal_zone0": temperatureData,
+		}
+
+		return c.JSON(http.StatusOK, data)
+
+	})
+	// e.GET("/api/v1/alarms?all&format=json", func(c echo.Context) error {
+	// 	time := int(time.Now().Unix())
+	// 	var value int
+	// 	var status string
+	// 	if login.CheckRouterAvailability(dev[netdata_routernum].IP) {
+	// 		value = 1
+	// 		status = "CLEAR"
+	// 	} else {
+	// 		value = 0
+	// 		status = "CRITICAL"
+	// 	}
+	// 	alarm := map[string]interface{}{
+	// 		"id":                    1,
+	// 		"name":                  "router_offline",
+	// 		"chart":                 "router.status",
+	// 		"family":                "status",
+	// 		"active":                true,
+	// 		"disabled":              false,
+	// 		"silenced":              false,
+	// 		"exec":                  "/usr/lib/netdata/plugins.d/alarm-notify.sh",
+	// 		"recipient":             "sysadmin",
+	// 		"source":                "10@/usr/lib/netdata/conf.d/health.d/router_offline.conf",
+	// 		"units":                 "status",
+	// 		"info":                  "the status of the router (offline = 0, online = 1)",
+	// 		"status":                status,
+	// 		"last_status_change":    1704026010,
+	// 		"last_updated":          time,
+	// 		"next_update":           time + 10,
+	// 		"update_every":          10,
+	// 		"delay_up_duration":     0,
+	// 		"delay_down_duration":   300,
+	// 		"delay_max_duration":    3600,
+	// 		"delay_multiplier":      1.5,
+	// 		"delay":                 0,
+	// 		"delay_up_to_timestamp": 1704026010,
+	// 		"warn_repeat_every":     "0",
+	// 		"crit_repeat_every":     "0",
+	// 		"value_string":          "1",
+	// 		"last_repeat":           "0",
+	// 		"calc":                  "${status}",
+	// 		"calc_parsed":           "${status}",
+	// 		"warn":                  "$this == 0",
+	// 		"warn_parsed":           "${this} == 0",
+	// 		"crit":                  "$this == 0",
+	// 		"crit_parsed":           "${this} == 0",
+	// 		"green":                 nil,
+	// 		"red":                   nil,
+	// 		"value":                 value,
+	// 	}
+
+	// 	data := map[string]interface{}{
+	// 		"hostname":                   routerNames[netdata_routernum],
+	// 		"latest_alarm_log_unique_id": 1703857080,
+	// 		"status":                     true,
+	// 		"now":                        time,
+	// 		"alarms": map[string]interface{}{
+	// 			"router_offline": alarm,
+	// 		},
+	// 	}
+	// 	return c.JSON(http.StatusOK, data)
+	// })
 	e.GET("/_api/getconfig", getconfig)
 
 	e.GET("/_api/gethistory", func(c echo.Context) error {
@@ -273,21 +452,15 @@ func main() {
 		e.Static("/", directory)
 	}
 	gettoken(dev)
-	database.CheckDatabase(databasepath)
-	go func() {
-		for range time.Tick(time.Duration(flushTokenTime) * time.Second) {
-			gettoken(dev)
-		}
-	}()
-	if historyEnable {
-		go func() {
-			for range time.Tick(time.Duration(sampletime) * time.Second) {
-				database.Savetodb(databasepath, dev, tokens, maxsaved)
-			}
-		}()
-	}
-
 	e.Start(":" + fmt.Sprint(port))
+
+	database.CheckDatabase(databasepath)
+	c.AddFunc("@every "+strconv.Itoa(flushTokenTime)+"s", func() { gettoken(dev) })
+
+	if historyEnable {
+		c.AddFunc("@every "+strconv.Itoa(sampletime)+"s", func() { database.Savetodb(databasepath, dev, tokens, maxsaved) })
+	}
+	c.Start()
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)

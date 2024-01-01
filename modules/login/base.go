@@ -97,7 +97,25 @@ func getrouterinfo(ip string) (bool, string, string) {
 	}
 	return false, routername, hardware
 }
+
+func CheckRouterAvailability(ip string) bool {
+	client := http.Client{
+		Timeout: 5 * time.Second,
+	}
+
+	_, err := client.Get("http://" + ip)
+	if err != nil {
+		logrus.Info("路由器" + ip + "不可用，请检查配置或路由器状态")
+		return false
+	}
+
+	return true
+}
 func GetToken(password string, key string, ip string) (string, string, string) {
+	logrus.Debug("检查路由器可用性...")
+	if !CheckRouterAvailability(ip) {
+		return "", "路由器不可用", ""
+	}
 	logrus.Debug("获取路由器信息...")
 	newEncryptMode, routername, hardware := getrouterinfo(ip)
 	logrus.Info("更新token...")
@@ -139,9 +157,9 @@ func GetToken(password string, key string, ip string) (string, string, string) {
 		logrus.Debug("当前token为:" + fmt.Sprint(result["token"]))
 		token = result["token"].(string)
 	} else {
-		logrus.Info("登录失败，请检查配置")
-		logrus.Info("5秒后退出程序")
+		logrus.Info("登录失败，请检查配置，以下为返回输出:")
 		logrus.Info(string(body))
+		logrus.Info("5秒后退出程序")
 		time.Sleep(5 * time.Second)
 		os.Exit(1)
 	}

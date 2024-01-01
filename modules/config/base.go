@@ -14,22 +14,22 @@ import (
 )
 
 var (
-	password       string
-	key            string
-	ip             string
-	debug          bool
-	port           int
-	tiny           bool
-	routerunit     bool
-	configPath     string
-	basedirectory  string
-	databasepath   string
-	historyEnable  bool
-	Version        string
-	dev            []Dev
-	maxsaved       int64
-	flushTokenTime int64
-	sampletime     int64
+	password          string
+	key               string
+	ip                string
+	debug             bool
+	port              int
+	tiny              bool
+	routerunit        bool
+	configPath        string
+	basedirectory     string
+	databasepath      string
+	historyEnable     bool
+	dev               []Dev
+	maxsaved          int
+	flushTokenTime    int
+	sampletime        int
+	netdata_routernum int
 )
 
 type Dev struct {
@@ -39,20 +39,21 @@ type Dev struct {
 	RouterUnit bool   `json:"routerunit"`
 }
 type History struct {
-	Enable     bool  `json:"enable"`
-	MaxDeleted int64 `json:"maxsaved"`
-	Sampletime int64 `json:"sampletime"`
+	Enable     bool `json:"enable"`
+	MaxDeleted int  `json:"maxsaved"`
+	Sampletime int  `json:"sampletime"`
 }
 type Config struct {
-	Dev            []Dev   `json:"dev"`
-	History        History `json:"history"`
-	Debug          bool    `json:"debug"`
-	Port           int     `json:"port"`
-	Tiny           bool    `json:"tiny"`
-	FlushTokenTime int64   `json:"flushTokenTime"`
+	Dev               []Dev   `json:"dev"`
+	History           History `json:"history"`
+	Debug             bool    `json:"debug"`
+	Port              int     `json:"port"`
+	Tiny              bool    `json:"tiny"`
+	FlushTokenTime    int     `json:"flushTokenTime"`
+	Netdata_routernum int     `json:"netdata_routernum"`
 }
 
-func GetConfigInfo() (dev []Dev, debug bool, port int, tiny bool, basedirectory string, flushTokenTime int64, databasepath string, maxsaved int64, historyEnable bool, sampletime int64) {
+func GetConfigInfo() (dev []Dev, debug bool, port int, tiny bool, basedirectory string, flushTokenTime int, databasepath string, maxsaved int, historyEnable bool, sampletime int, netdata_routernum int) {
 	flag.StringVar(&configPath, "config", "", "配置文件路径")
 	flag.StringVar(&basedirectory, "basedirectory", "", "基础目录路径")
 	flag.StringVar(&databasepath, "databasepath", "", "数据库路径")
@@ -95,6 +96,7 @@ func GetConfigInfo() (dev []Dev, debug bool, port int, tiny bool, basedirectory 
 	historyEnable = config.History.Enable
 	sampletime = config.History.Sampletime
 	flushTokenTime = config.FlushTokenTime
+	netdata_routernum = config.Netdata_routernum
 	// logrus.Info(password)
 	// logrus.Info(key)
 	if tiny == false {
@@ -112,7 +114,7 @@ func GetConfigInfo() (dev []Dev, debug bool, port int, tiny bool, basedirectory 
 		time.Sleep(5 * time.Second)
 		os.Exit(1)
 	}
-	return dev, debug, port, tiny, basedirectory, flushTokenTime, databasepath, maxsaved, historyEnable, sampletime
+	return dev, debug, port, tiny, basedirectory, flushTokenTime, databasepath, maxsaved, historyEnable, sampletime, netdata_routernum
 }
 
 func checkErr(err error) {

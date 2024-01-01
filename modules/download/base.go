@@ -13,6 +13,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var (
+	Version string
+)
+
 func DownloadStatic(basedirectory string, force bool) error {
 	directory := "static"
 	if basedirectory != "" {
@@ -45,10 +49,9 @@ func DownloadStatic(basedirectory string, force bool) error {
 	logrus.Info("静态资源已存在，版本号为" + string(forntendVersion))
 
 	resp, err := http.Get("https://mrui-api.hzchu.top/checkupdate")
+
 	if err != nil {
-		logrus.Info("无法获取更新信息，重新下载")
-		os.RemoveAll(directory)
-		downloadfile(directory)
+		logrus.Info("无法获取更新信息，跳过检查")
 		return err
 	}
 
@@ -58,8 +61,14 @@ func DownloadStatic(basedirectory string, force bool) error {
 	var result map[string]interface{}
 	json.Unmarshal(body, &result)
 
+	if result["backversion"] != string(Version) {
+		message := fmt.Sprintf("后端程序发现新版本(%v)，请及时更新", result["backversion"])
+		logrus.Info(message)
+	}
+
 	if result["frontversion"] != string(forntendVersion) {
-		logrus.Info("发现新版本，重新下载")
+		message := fmt.Sprintf("前端文件发现新版本(%v)，正在重新下载", result["frontversion"])
+		logrus.Info(message)
 		os.RemoveAll(directory)
 		downloadfile(directory)
 	}
@@ -84,6 +93,7 @@ func downloadfile(directory string) {
 func unzip(src, dest string) error {
 	r, err := zip.OpenReader(src)
 	if err != nil {
+		logrus.Info("静态资源下载失败，请尝试手动下载")
 		return err
 	}
 	defer r.Close()

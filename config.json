@@ -10,6 +10,7 @@
         "sampletime": 300,
         "maxsaved": 8640
     },
+    "netdata_routerid": 0,
     "flushTokenTime": 1800,
     "tiny": false,
     "port": 6789,

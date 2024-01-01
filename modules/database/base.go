@@ -62,7 +62,7 @@ func CheckDatabase(databasepath string) {
 // - dev: an array of device configurations.
 // - tokens: a map of token IDs to strings.
 // - maxsaved: the maximum number of records to delete.
-func Savetodb(databasepath string, dev []config.Dev, tokens map[int]string, maxsaved int64) {
+func Savetodb(databasepath string, dev []config.Dev, tokens map[int]string, maxsaved int) {
 	db, err := gorm.Open(sqlite.Open(databasepath), &gorm.Config{})
 	checkErr(err)
 	for i, d := range dev {
@@ -71,7 +71,7 @@ func Savetodb(databasepath string, dev []config.Dev, tokens map[int]string, maxs
 		cpu, cpu_tp, mem, upSpeed, downSpeed, upTotal, downTotal, deviceNum := getDeviceStats(i, tokens, ip)
 		var count int64
 		db.Model(&History{}).Where("router_num = ?", routerNum).Count(&count)
-		if count >= maxsaved {
+		if count >= int64(maxsaved) {
 			logrus.Debug("删除历史数据")
 			db.Exec("DELETE FROM histories WHERE router_num = ? AND created_at = (SELECT MIN(created_at) FROM histories WHERE router_num = ? );", routerNum, routerNum)
 
@@ -116,6 +116,9 @@ func Getdata(databasepath string, routernum int) []History {
 // - downloadtotal: The total download amount.
 // - devicenum_now: The number of online devices.
 func getDeviceStats(routernum int, tokens map[int]string, ip string) (float64, int, float64, float64, float64, float64, float64, int) {
+	if tokens[routernum] == "" {
+		return 0, 0, 0, 0, 0, 0, 0, 0
+	}
 	url := fmt.Sprintf("http://%s/cgi-bin/luci/;stok=%s/api/misystem/status", ip, tokens[routernum])
 	resp, err := http.Get(url)
 	checkErr(err)
