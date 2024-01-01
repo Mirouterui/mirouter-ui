@@ -88,6 +88,7 @@
 | dev    | []     | 路由器信息，参阅`dev项`                                      |
 | history    | [] | 历史记录相关功能，参阅`history项`                                      |
 | tiny   | false  | 启用后，不再下载静态文件，需搭配[在线前端](http://mrui.hzchu.top:8880/)使用 |
+| netdata_routerid | 0 | 调用netdata api时返回的路由器（对应dev项中第n个） |
 | flushTokenTime | 1800 | 刷新token时间间隔(s) |
 | port   | 6789   | 网页页面端口号                                               |
 | debug  | true   | debug模式，建议在测试正常后关闭                              |
@@ -124,9 +125,26 @@
 
 ### 后台运行
 
-自行参考：
+Systemd
 
-[Linux命令后台运行_后台运行命令_拉普拉斯妖1228的博客-CSDN博客](https://blog.csdn.net/caesar1228/article/details/118853871)
+```bash
+sudo vim /etc/systemd/system/artalk.service
+```
+
+
+
+```ini
+[Unit]
+Description=mrui
+After=network.target network-online.target
+Requires=network-online.target
+
+[Service]
+ExecStart=/pathto/mrui
+
+[Install]
+WantedBy=multi-user.target
+```
 
 [windows守护进程工具--nssm详解 - 与f - 博客园 (cnblogs.com)](https://www.cnblogs.com/fps2tao/p/16433588.html)
 
@@ -137,7 +155,9 @@
 - [x] 多路由支持
 - [x] 快捷更新
 - [ ] 设备小工具
-- [ ] netdata，api形式兼容
+- [x] netdata，api形式兼容
+
+[MRUI开发规划](https://bbs.hzchu.top/d/2-mruikai-fa-gui-hua)
 
 > 主要功能已完成开发,接下来随缘更新😶‍🌫️
 
