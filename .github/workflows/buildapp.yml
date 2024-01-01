@@ -13,7 +13,7 @@ on:
 
 jobs:
   build_win:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
 
     - name: Checkout code
@@ -40,7 +40,7 @@ jobs:
         path: ./build/**
 
   build_linux:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
 
     - name: Checkout code
@@ -67,7 +67,7 @@ jobs:
         path: ./build/**
 
   build_darwin:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -93,7 +93,7 @@ jobs:
         path: ./build/**
 
   post_release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs: [build_win, build_linux, build_darwin]
     steps:
       - name: Download artifacts
@@ -137,7 +137,7 @@ jobs:
           done
         
   builddocker:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       -
         name: Checkout
