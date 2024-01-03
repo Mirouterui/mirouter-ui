@@ -128,7 +128,7 @@
 Systemd
 
 ```bash
-sudo vim /etc/systemd/system/artalk.service
+sudo vim /etc/systemd/system/mrui.service
 ```
 
 
