@@ -120,7 +120,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
         with:
-          tag_name: ${{ github.event.inputs.version }}_whr
+          tag_name: ${{ github.event.inputs.version }}-whr
           release_name: Release ${{ github.event.inputs.version }} without history record version
           draft: true
           prerelease: false
