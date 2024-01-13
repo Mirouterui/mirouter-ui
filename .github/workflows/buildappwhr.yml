@@ -1,5 +1,5 @@
-name: Build and Release
-run-name: Build ${{ github.event.inputs.version }} by @${{ github.actor }}
+name: Build and Release without history record version
+run-name: Build ${{ github.event.inputs.version }} without history record version by @${{ github.actor }}
 
 permissions: write-all
 
@@ -118,8 +118,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
         with:
-          tag_name: ${{ github.event.inputs.version }}
-          release_name: Release ${{ github.event.inputs.version }}
+          tag_name: ${{ github.event.inputs.version }}_whr
+          release_name: Release ${{ github.event.inputs.version }} without history record version
           draft: true
           prerelease: false
 
@@ -161,4 +161,4 @@ jobs:
           context: .
           platforms: linux/amd64,linux/386,linux/arm64,linux/arm/v7,linux/arm/v6
           push: true
-          tags: thun888/mirouter-ui:latest
+          tags: thun888/mirouter-ui:whr

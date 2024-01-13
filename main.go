@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"main/modules/config"
-	"main/modules/database"
 	"main/modules/download"
 	login "main/modules/login"
 	"main/modules/netdata"
@@ -385,24 +384,24 @@ func main() {
 	// })
 	e.GET("/_api/getconfig", getconfig)
 
-	e.GET("/_api/gethistory", func(c echo.Context) error {
-		routernum, err := strconv.Atoi(c.QueryParam("routernum"))
-		if err != nil {
-			return c.JSON(http.StatusOK, map[string]interface{}{"code": 1100, "msg": "参数错误"})
-		}
-		if !historyEnable {
-			return c.JSON(http.StatusOK, map[string]interface{}{
-				"code": 1101,
-				"msg":  "历史数据未开启",
-			})
-		}
-		history := database.Getdata(databasepath, routernum)
+	// e.GET("/_api/gethistory", func(c echo.Context) error {
+	// 	routernum, err := strconv.Atoi(c.QueryParam("routernum"))
+	// 	if err != nil {
+	// 		return c.JSON(http.StatusOK, map[string]interface{}{"code": 1100, "msg": "参数错误"})
+	// 	}
+	// 	if !historyEnable {
+	// 		return c.JSON(http.StatusOK, map[string]interface{}{
+	// 			"code": 1101,
+	// 			"msg":  "历史数据未开启",
+	// 		})
+	// 	}
+	// 	history := database.Getdata(databasepath, routernum)
 
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"code":    0,
-			"history": history,
-		})
-	})
+	// 	return c.JSON(http.StatusOK, map[string]interface{}{
+	// 		"code":    0,
+	// 		"history": history,
+	// 	})
+	// })
 
 	e.GET("/_api/flushstatic", func(c echo.Context) error {
 		err := download.DownloadStatic(basedirectory, true)
@@ -454,12 +453,12 @@ func main() {
 	gettoken(dev)
 	e.Start(":" + fmt.Sprint(port))
 
-	database.CheckDatabase(databasepath)
+	// database.CheckDatabase(databasepath)
 	c.AddFunc("@every "+strconv.Itoa(flushTokenTime)+"s", func() { gettoken(dev) })
 
-	if historyEnable {
-		c.AddFunc("@every "+strconv.Itoa(sampletime)+"s", func() { database.Savetodb(databasepath, dev, tokens, maxsaved) })
-	}
+	// if historyEnable {
+	// 	c.AddFunc("@every "+strconv.Itoa(sampletime)+"s", func() { database.Savetodb(databasepath, dev, tokens, maxsaved) })
+	// }
 	c.Start()
 
 	quit := make(chan os.Signal, 1)
