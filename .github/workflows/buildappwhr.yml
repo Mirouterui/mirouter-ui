@@ -1,5 +1,5 @@
-name: Build and Release without history record version
-run-name: Build ${{ github.event.inputs.version }} without history record version by @${{ github.actor }}
+name: Build and Release without history record
+run-name: Build ${{ github.event.inputs.version }} without history record by @${{ github.actor }}
 
 permissions: write-all
 

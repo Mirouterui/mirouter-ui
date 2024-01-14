@@ -300,8 +300,8 @@ func main() {
 		memAvailableData := netdata.GenerateDataForAllMetrics("mem.available", "mem", "bytes", memAvailable, "used")
 		memTotalData := netdata.GenerateDataForAllMetrics("mem.total", "mem", "bytes", memTotal, "used")
 		memUsageData := netdata.GenerateDataForAllMetrics("mem.used", "mem", "percentage", memUsage, "used")
-		upSpeedData := netdata.GenerateDataForAllMetrics("net.eth0.receivedspeed", "net", "bytes", upSpeed, "received")
-		downSpeedData := netdata.GenerateDataForAllMetrics("net.eth0.sentspeed", "net", "bytes", downSpeed, "sent")
+		upSpeedData := netdata.GenerateDataForAllMetrics("net.eth0.sentspeed", "net", "bytes", upSpeed, "sent")
+		downSpeedData := netdata.GenerateDataForAllMetrics("net.eth0.receivedspeed", "net", "bytes", downSpeed, "received")
 		temperatureData := netdata.GenerateDataForAllMetrics("sensors.temp_thermal_zone0_thermal_thermal_zone0", "sensors", "celsius", temperature, "temperature")
 		deviceonlineData := netdata.GenerateDataForAllMetrics("device.online", "device", "count", deviceonline, "online")
 		uploadtotalData := netdata.GenerateDataForAllMetrics("net.eth0.sent", "net", "bytes", uploadtotal, "total")
@@ -311,8 +311,8 @@ func main() {
 			"mem.available":          memAvailableData,
 			"mem.total":              memTotalData,
 			"mem.used":               memUsageData,
-			"net.eth0.receivedspeed": upSpeedData,
-			"net.eth0.sentspeed":     downSpeedData,
+			"net.eth0.receivedspeed": downSpeedData,
+			"net.eth0.sentspeed":     upSpeedData,
 			"device.online":          deviceonlineData,
 			"net.eth0.sent":          uploadtotalData,
 			"net.eth0.received":      downloadtotalData,
