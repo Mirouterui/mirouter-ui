@@ -125,13 +125,11 @@
 
 ### 后台运行
 
-Systemd
+注册为系统服务
 
 ```bash
 sudo vim /etc/systemd/system/mrui.service
 ```
-
-
 
 ```ini
 [Unit]
@@ -144,6 +142,21 @@ ExecStart=/pathto/mrui
 
 [Install]
 WantedBy=multi-user.target
+```
+
+设置开机自启
+
+```bash
+sudo systemctl enable mrui
+```
+
+管理
+
+```bash
+查看状态：systemctl status mrui
+启动：sudo systemctl start mrui
+停止：sudo systemctl stop mrui
+重启：sudo systemctl restart mrui
 ```
 
 [windows守护进程工具--nssm详解 - 与f - 博客园 (cnblogs.com)](https://www.cnblogs.com/fps2tao/p/16433588.html)
