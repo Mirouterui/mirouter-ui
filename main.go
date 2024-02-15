@@ -452,7 +452,6 @@ func main() {
 		e.Static("/", directory)
 	}
 	gettoken(dev)
-	e.Start(":" + fmt.Sprint(port))
 
 	database.CheckDatabase(databasepath)
 	c.AddFunc("@every "+strconv.Itoa(flushTokenTime)+"s", func() { gettoken(dev) })
@@ -469,4 +468,6 @@ func main() {
 		<-quit
 		e.Close()
 	}()
+
+	e.Start(":" + fmt.Sprint(port))
 }
