@@ -2,12 +2,12 @@ package database
 
 import (
 	"io"
-	"math"
 	"strconv"
 
 	"encoding/json"
 	"fmt"
 	"main/modules/config"
+	"math"
 	"net/http"
 
 	"github.com/glebarez/sqlite"
@@ -28,6 +28,25 @@ type History struct {
 	UpTotal   float64
 	DownTotal float64
 	DeviceNum int
+}
+type DevicesHistory struct {
+	gorm.Model
+	Mac       string
+	UpSpeed   float64
+	DownSpeed float64
+	UpTotal   float64
+	DownTotal float64
+}
+type DeviceInfo struct {
+	DevName          string `json:"devname"`
+	Download         int64  `json:"download,string"`
+	DownSpeed        int    `json:"downspeed,string"`
+	Mac              string `json:"mac"`
+	MaxDownloadSpeed int    `json:"maxdownloadspeed,string"`
+	MaxUploadSpeed   int    `json:"maxuploadspeed,string"`
+	Online           int    `json:"online,string"`
+	Upload           int64  `json:"upload,string"`
+	UpSpeed          int    `json:"upspeed,string"`
 }
 
 type Dev struct {
@@ -51,7 +70,8 @@ func CheckDatabase(databasepath string) {
 	// Check if the history table exists, if not, create it
 	err = db.AutoMigrate(&History{})
 	checkErr(err)
-
+	err = db.AutoMigrate(&DevicesHistory{})
+	checkErr(err)
 	// Perform CRUD operations on the history table using db.Create, db.First, db.Update, db.Delete methods
 }
 
@@ -68,7 +88,7 @@ func Savetodb(databasepath string, dev []config.Dev, tokens map[int]string, maxs
 	for i, d := range dev {
 		ip := d.IP
 		routerNum := i
-		cpu, cpu_tp, mem, upSpeed, downSpeed, upTotal, downTotal, deviceNum := getDeviceStats(i, tokens, ip)
+		cpu, cpu_tp, mem, upSpeed, downSpeed, upTotal, downTotal, deviceNum, devs := getRouterStats(i, tokens, ip)
 		var count int64
 		db.Model(&History{}).Where("router_num = ?", routerNum).Count(&count)
 		if count >= int64(maxsaved) {
@@ -88,6 +108,40 @@ func Savetodb(databasepath string, dev []config.Dev, tokens map[int]string, maxs
 			DownTotal: downTotal,
 			DeviceNum: deviceNum,
 		})
+		for _, dev := range devs {
+			devMap := dev.(map[string]interface{})
+
+			data, err := json.Marshal(devMap)
+			checkErr(err)
+
+			var info DeviceInfo
+			err = json.Unmarshal(data, &info)
+			checkErr(err)
+			mac := info.Mac
+			upSpeed := float64(info.UpSpeed) / 1024 / 1024
+			downSpeed := float64(info.DownSpeed) / 1024 / 1024
+			upTotal := float64(info.Upload) / 1024 / 1024
+			downTotal := float64(info.Download) / 1024 / 1024
+			db.Model(&DevicesHistory{}).Where("mac = ?", routerNum).Count(&count)
+			if count >= int64(maxsaved) {
+				logrus.Debug("删除历史数据")
+				db.Exec("DELETE FROM histories WHERE mac = ? AND created_at = (SELECT MIN(created_at) FROM histories WHERE mac = ? );", mac, mac)
+
+			}
+			db.Create(&History{
+				Ip:        ip,
+				RouterNum: routerNum,
+				Cpu:       cpu,
+				Cpu_tp:    cpu_tp,
+				Mem:       mem,
+				UpSpeed:   upSpeed,
+				DownSpeed: downSpeed,
+				UpTotal:   upTotal,
+				DownTotal: downTotal,
+				DeviceNum: deviceNum,
+			})
+		}
+
 	}
 }
 
@@ -96,28 +150,16 @@ func Getdata(databasepath string, routernum int) []History {
 	checkErr(err)
 	var history []History
 	db.Where("router_num = ?", routernum).Find(&history)
+	// 处理浮点数精度问题
+	for i := range history {
+		history[i].Cpu = round(history[i].Cpu, .5, 2)
+	}
 	return history
 }
 
-// getDeviceStats retrieves the device statistics from the specified router.
-//
-// Parameters:
-// - routernum: The router number.
-// - tokens: A map containing the tokens.
-// - ip: The IP address of the router.
-//
-// Returns:
-// - cpuload: The Cpu load.
-// - cpu_tp: The Cpu temperature.
-// - memusage: The memory usage.
-// - upspeed: The upload speed.
-// - downspeed: The download speed.
-// - uploadtotal: The total upload amount.
-// - downloadtotal: The total download amount.
-// - devicenum_now: The number of online devices.
-func getDeviceStats(routernum int, tokens map[int]string, ip string) (float64, int, float64, float64, float64, float64, float64, int) {
+func getRouterStats(routernum int, tokens map[int]string, ip string) (float64, int, float64, float64, float64, float64, float64, int, []interface{}) {
 	if tokens[routernum] == "" {
-		return 0, 0, 0, 0, 0, 0, 0, 0
+		return 0, 0, 0, 0, 0, 0, 0, 0, []interface{}{}
 	}
 	url := fmt.Sprintf("http://%s/cgi-bin/luci/;stok=%s/api/misystem/status", ip, tokens[routernum])
 	resp, err := http.Get(url)
@@ -131,20 +173,35 @@ func getDeviceStats(routernum int, tokens map[int]string, ip string) (float64, i
 	downspeed, _ := strconv.ParseFloat(result["wan"].(map[string]interface{})["downspeed"].(string), 64)
 	uploadtotal, _ := strconv.ParseFloat(result["wan"].(map[string]interface{})["upload"].(string), 64)
 	downloadtotal, _ := strconv.ParseFloat(result["wan"].(map[string]interface{})["download"].(string), 64)
-	cpuload := roundToOneDecimal(result["cpu"].(map[string]interface{})["load"].(float64) * 100)
+	cpuload := result["cpu"].(map[string]interface{})["load"].(float64) * 100
 	cpu_tp := int(result["temperature"].(float64))
-	memusage := roundToOneDecimal(result["mem"].(map[string]interface{})["usage"].(float64) * 100)
+	memusage := result["mem"].(map[string]interface{})["usage"].(float64) * 100
 	devicenum_now := int(result["count"].(map[string]interface{})["online"].(float64))
+	devs := result["devs"].([]interface{})
 
-	return cpuload, cpu_tp, memusage, upspeed, downspeed, uploadtotal, downloadtotal, devicenum_now
+	return cpuload, cpu_tp, memusage, upspeed, downspeed, uploadtotal, downloadtotal, devicenum_now, devs
 }
 
-func roundToOneDecimal(num float64) float64 {
-	return math.Round(num*100) / 100
-}
+// func roundToOneDecimal(num float64) float64 {
+// 	return math.Round(num*100) / 100
+// }
 
 func checkErr(err error) {
 	if err != nil {
 		logrus.Debug(err)
 	}
+}
+func round(val float64, roundOn float64, places int) (newVal float64) {
+	var rounder float64
+	pow := math.Pow(10, float64(places))
+	intermed := val * pow
+	_, frac := math.Modf(intermed)
+
+	if frac >= roundOn {
+		rounder = math.Ceil(intermed)
+	} else {
+		rounder = math.Floor(intermed)
+	}
+	newVal = rounder / pow
+	return
 }
