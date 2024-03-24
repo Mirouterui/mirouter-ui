@@ -420,7 +420,6 @@ func main() {
 		if deviceMac == "" || len(deviceMac) != 17 || err != nil {
 			return c.JSON(http.StatusOK, map[string]interface{}{"code": 1100, "msg": "参数错误"})
 		}
-
 		if !historyEnable {
 			return c.JSON(http.StatusOK, map[string]interface{}{
 				"code": 1101,

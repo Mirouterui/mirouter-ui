@@ -153,6 +153,7 @@ func Savetodb(databasePath string, dev []config.Dev, tokens map[int]string, maxs
 }
 
 func GetRouterHistory(databasePath string, routernum int, fixupfloat bool) []RouterHistory {
+
 	db, err := gorm.Open(sqlite.Open(databasePath), &gorm.Config{})
 	checkErr(err)
 	var history []RouterHistory
@@ -168,11 +169,13 @@ func GetRouterHistory(databasePath string, routernum int, fixupfloat bool) []Rou
 			history[i].DownTotal = round(history[i].DownTotal, .5, 2)
 
 		}
+
 	}
 	return history
 }
 
 func GetDeviceHistory(databasePath string, deviceMac string, fixupfloat bool) []DevicesHistory {
+
 	db, err := gorm.Open(sqlite.Open(databasePath), &gorm.Config{})
 	checkErr(err)
 	var history []DevicesHistory
@@ -185,6 +188,7 @@ func GetDeviceHistory(databasePath string, deviceMac string, fixupfloat bool) []
 			history[i].UpTotal = round(history[i].UpTotal, .5, 2)
 			history[i].DownTotal = round(history[i].DownTotal, .5, 2)
 		}
+
 	}
 	return history
 }
