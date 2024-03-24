@@ -152,35 +152,39 @@ func Savetodb(databasePath string, dev []config.Dev, tokens map[int]string, maxs
 	}
 }
 
-func GetRouterHistory(databasePath string, routernum int) []RouterHistory {
+func GetRouterHistory(databasePath string, routernum int, fixupfloat bool) []RouterHistory {
 	db, err := gorm.Open(sqlite.Open(databasePath), &gorm.Config{})
 	checkErr(err)
 	var history []RouterHistory
 	db.Where("router_num = ?", routernum).Find(&history)
 	// 处理浮点数精度问题
-	for i := range history {
-		history[i].Cpu = round(history[i].Cpu, .5, 2)
-		history[i].Mem = round(history[i].Mem, .5, 2)
-		history[i].UpSpeed = round(history[i].UpSpeed, .5, 2)
-		history[i].DownSpeed = round(history[i].DownSpeed, .5, 2)
-		history[i].UpTotal = round(history[i].UpTotal, .5, 2)
-		history[i].DownTotal = round(history[i].DownTotal, .5, 2)
+	if fixupfloat {
+		for i := range history {
+			history[i].Cpu = round(history[i].Cpu, .5, 2)
+			history[i].Mem = round(history[i].Mem, .5, 2)
+			history[i].UpSpeed = round(history[i].UpSpeed, .5, 2)
+			history[i].DownSpeed = round(history[i].DownSpeed, .5, 2)
+			history[i].UpTotal = round(history[i].UpTotal, .5, 2)
+			history[i].DownTotal = round(history[i].DownTotal, .5, 2)
 
+		}
 	}
 	return history
 }
 
-func GetDeviceHistory(databasePath string, deviceMac string) []DevicesHistory {
+func GetDeviceHistory(databasePath string, deviceMac string, fixupfloat bool) []DevicesHistory {
 	db, err := gorm.Open(sqlite.Open(databasePath), &gorm.Config{})
 	checkErr(err)
 	var history []DevicesHistory
 	db.Where("mac = ?", deviceMac).Find(&history)
 	// 处理浮点数精度问题
-	for i := range history {
-		history[i].UpSpeed = round(history[i].UpSpeed, .5, 2)
-		history[i].DownSpeed = round(history[i].DownSpeed, .5, 2)
-		history[i].UpTotal = round(history[i].UpTotal, .5, 2)
-		history[i].DownTotal = round(history[i].DownTotal, .5, 2)
+	if fixupfloat {
+		for i := range history {
+			history[i].UpSpeed = round(history[i].UpSpeed, .5, 2)
+			history[i].DownSpeed = round(history[i].DownSpeed, .5, 2)
+			history[i].UpTotal = round(history[i].UpTotal, .5, 2)
+			history[i].DownTotal = round(history[i].DownTotal, .5, 2)
+		}
 	}
 	return history
 }
