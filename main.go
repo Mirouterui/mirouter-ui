@@ -428,7 +428,6 @@ func main() {
 		}
 		history := database.GetDeviceHistory(databasepath, deviceMac, fixupfloat_bool)
 
-
 		return c.JSON(http.StatusOK, map[string]interface{}{
 			"code":    0,
 			"history": history,

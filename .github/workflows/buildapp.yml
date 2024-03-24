@@ -112,32 +112,18 @@ jobs:
           name: mirouter-ui-darwin
           path: ./build
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
-        with:
-          tag_name: ${{ github.event.inputs.version }}
-          release_name: Release ${{ github.event.inputs.version }}
-          draft: true
-          prerelease: false
-
       - name: Upload Release Assets
-        run: |
-          for file in ./build/*; do
-            if [ -f "$file" ]; then
-              echo "Uploading $file"
-              curl \
-                -H "Authorization: token ${{ secrets.TOKEN }}" \
-                -H "Content-Type: $(file -b --mime-type $file)" \
-                -F "file=@$file" \
-                "${{ steps.create_release.outputs.upload_url }}=$(basename $file)"
-            fi
-          done
+        uses: ncipollo/release-action@v1
+      - name: Upload Release Assets
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "build/"
+          token: ${{ secrets.TOKEN }}
+          tag: ${{ github.event.inputs.version }}
+          name: Release ${{ github.event.inputs.version }}
+          draft: true
 
       # 安装 rclone
-      # dev版本不另外发release
       - name: Install rclone
         run: |
           cd ~
