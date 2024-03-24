@@ -115,7 +115,7 @@ jobs:
       - name: Upload Release Assets
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "build/"
+          artifacts: "build/*"
           token: ${{ secrets.TOKEN }}
           tag: ${{ github.event.inputs.version }}
           name: Release ${{ github.event.inputs.version }}
