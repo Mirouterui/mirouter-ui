@@ -122,25 +122,32 @@ func Savetodb(databasepath string, dev []config.Dev, tokens map[int]string, maxs
 			downSpeed := float64(info.DownSpeed) / 1024 / 1024
 			upTotal := float64(info.Upload) / 1024 / 1024
 			downTotal := float64(info.Download) / 1024 / 1024
+			db.Create(&DevicesHistory{
+				Mac:       mac,
+				UpSpeed:   upSpeed,
+				DownSpeed: downSpeed,
+				UpTotal:   upTotal,
+				DownTotal: downTotal,
+			})
 			db.Model(&DevicesHistory{}).Where("mac = ?", routerNum).Count(&count)
 			if count >= int64(maxsaved) {
 				logrus.Debug("删除历史数据")
 				db.Exec("DELETE FROM histories WHERE mac = ? AND created_at = (SELECT MIN(created_at) FROM histories WHERE mac = ? );", mac, mac)
 
 			}
-			db.Create(&History{
-				Ip:        ip,
-				RouterNum: routerNum,
-				Cpu:       cpu,
-				Cpu_tp:    cpu_tp,
-				Mem:       mem,
-				UpSpeed:   upSpeed,
-				DownSpeed: downSpeed,
-				UpTotal:   upTotal,
-				DownTotal: downTotal,
-				DeviceNum: deviceNum,
-			})
 		}
+		db.Create(&History{
+			Ip:        ip,
+			RouterNum: routerNum,
+			Cpu:       cpu,
+			Cpu_tp:    cpu_tp,
+			Mem:       mem,
+			UpSpeed:   upSpeed,
+			DownSpeed: downSpeed,
+			UpTotal:   upTotal,
+			DownTotal: downTotal,
+			DeviceNum: deviceNum,
+		})
 
 	}
 }
@@ -177,7 +184,7 @@ func getRouterStats(routernum int, tokens map[int]string, ip string) (float64, i
 	cpu_tp := int(result["temperature"].(float64))
 	memusage := result["mem"].(map[string]interface{})["usage"].(float64) * 100
 	devicenum_now := int(result["count"].(map[string]interface{})["online"].(float64))
-	devs := result["devs"].([]interface{})
+	devs := result["dev"].([]interface{})
 
 	return cpuload, cpu_tp, memusage, upspeed, downspeed, uploadtotal, downloadtotal, devicenum_now, devs
 }
