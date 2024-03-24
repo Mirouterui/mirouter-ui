@@ -118,10 +118,10 @@ func Savetodb(databasePath string, dev []config.Dev, tokens map[int]string, maxs
 			err = json.Unmarshal(data, &info)
 			checkErr(err)
 			mac := info.Mac
-			upSpeed := float64(info.UpSpeed) / 1024 / 1024
-			downSpeed := float64(info.DownSpeed) / 1024 / 1024
-			upTotal := float64(info.Upload) / 1024 / 1024
-			downTotal := float64(info.Download) / 1024 / 1024
+			upSpeed := float64(info.UpSpeed)
+			downSpeed := float64(info.DownSpeed)
+			upTotal := float64(info.Upload)
+			downTotal := float64(info.Download)
 			db.Create(&DevicesHistory{
 				Mac:       mac,
 				UpSpeed:   upSpeed,
