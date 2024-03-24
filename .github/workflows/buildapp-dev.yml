@@ -11,13 +11,13 @@ on:
 
 
 jobs:
-  build_win:
+  build:
     runs-on: ubuntu-20.04
     steps:
 
     - name: Checkout code
       uses: actions/checkout@v3
-
+      
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
@@ -25,14 +25,14 @@ jobs:
 
     - name: Install UPX
       run: sudo apt-get install upx
-    
+
     - name: download modules
       run: go mod download
 
     - name: Run build script
-    # 传入commit sha
+      # 传入commit sha
       run: bash build.sh ${{ github.sha }}
-
+      
     # 安装 rclone
     # dev版本不另外发release
     - name: Install rclone
@@ -43,7 +43,9 @@ jobs:
     - name: Configure rclone
       run: |
         mkdir -p ~/.config/rclone
-        echo ${{ secrets.RCLONECONFIG }} > ~/.config/rclone
+        cat >  ~/.config/rclone/rclone.conf  << EOF
+        ${{ secrets.RCLONECONFIG }}
+        EOF
     - name: Sync to OneDrive
       run: |
         sudo timedatectl set-timezone "Asia/Shanghai"

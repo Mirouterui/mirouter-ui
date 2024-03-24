@@ -146,7 +146,9 @@ jobs:
       - name: Configure rclone
         run: |
           mkdir -p ~/.config/rclone
-          echo "${{ secrets.RCLONECONFIG }}" > ~/.config/rclone/rclone.conf
+          cat >  ~/.config/rclone/rclone.conf  << EOF
+          ${{ secrets.RCLONECONFIG }}
+          EOF
       - name: Sync to OneDrive
         run: |
           sudo timedatectl set-timezone "Asia/Shanghai"
