@@ -16,7 +16,7 @@ import (
 )
 
 // For database
-type History struct {
+type RouterHistory struct {
 	gorm.Model
 	Ip        string
 	RouterNum int
@@ -59,16 +59,16 @@ type Dev struct {
 // CheckDatabase checks the SQLite database file at the given path.
 //
 // Parameters:
-// - databasepath: a string variable that holds the path to the SQLite database file.
+// - databasePath: a string variable that holds the path to the SQLite database file.
 //
 // Returns: None.
-func CheckDatabase(databasepath string) {
-	// databasepath is a variable that holds the path to the SQLite database file
-	db, err := gorm.Open(sqlite.Open(databasepath), &gorm.Config{})
+func CheckDatabase(databasePath string) {
+	// databasePath is a variable that holds the path to the SQLite database file
+	db, err := gorm.Open(sqlite.Open(databasePath), &gorm.Config{})
 	checkErr(err)
 
 	// Check if the history table exists, if not, create it
-	err = db.AutoMigrate(&History{})
+	err = db.AutoMigrate(&RouterHistory{})
 	checkErr(err)
 	err = db.AutoMigrate(&DevicesHistory{})
 	checkErr(err)
@@ -78,25 +78,25 @@ func CheckDatabase(databasepath string) {
 // Savetodb saves device statistics to the database.
 //
 // Parameters:
-// - databasepath: the path to the database.
+// - databasePath: the path to the database.
 // - dev: an array of device configurations.
 // - tokens: a map of token IDs to strings.
 // - maxsaved: the maximum number of records to delete.
-func Savetodb(databasepath string, dev []config.Dev, tokens map[int]string, maxsaved int) {
-	db, err := gorm.Open(sqlite.Open(databasepath), &gorm.Config{})
+func Savetodb(databasePath string, dev []config.Dev, tokens map[int]string, maxsaved int) {
+	db, err := gorm.Open(sqlite.Open(databasePath), &gorm.Config{})
 	checkErr(err)
 	for i, d := range dev {
 		ip := d.IP
 		routerNum := i
 		cpu, cpu_tp, mem, upSpeed, downSpeed, upTotal, downTotal, deviceNum, devs := getRouterStats(i, tokens, ip)
 		var count int64
-		db.Model(&History{}).Where("router_num = ?", routerNum).Count(&count)
+		db.Model(&RouterHistory{}).Where("router_num = ?", routerNum).Count(&count)
 		if count >= int64(maxsaved) {
 			logrus.Debug("删除历史数据")
 			db.Exec("DELETE FROM histories WHERE router_num = ? AND created_at = (SELECT MIN(created_at) FROM histories WHERE router_num = ? );", routerNum, routerNum)
 
 		}
-		db.Create(&History{
+		db.Create(&RouterHistory{
 			Ip:        ip,
 			RouterNum: routerNum,
 			Cpu:       cpu,
@@ -136,7 +136,7 @@ func Savetodb(databasepath string, dev []config.Dev, tokens map[int]string, maxs
 
 			}
 		}
-		db.Create(&History{
+		db.Create(&RouterHistory{
 			Ip:        ip,
 			RouterNum: routerNum,
 			Cpu:       cpu,
@@ -152,14 +152,35 @@ func Savetodb(databasepath string, dev []config.Dev, tokens map[int]string, maxs
 	}
 }
 
-func Getdata(databasepath string, routernum int) []History {
-	db, err := gorm.Open(sqlite.Open(databasepath), &gorm.Config{})
+func GetRouterHistory(databasePath string, routernum int) []RouterHistory {
+	db, err := gorm.Open(sqlite.Open(databasePath), &gorm.Config{})
 	checkErr(err)
-	var history []History
+	var history []RouterHistory
 	db.Where("router_num = ?", routernum).Find(&history)
 	// 处理浮点数精度问题
 	for i := range history {
 		history[i].Cpu = round(history[i].Cpu, .5, 2)
+		history[i].Mem = round(history[i].Mem, .5, 2)
+		history[i].UpSpeed = round(history[i].UpSpeed, .5, 2)
+		history[i].DownSpeed = round(history[i].DownSpeed, .5, 2)
+		history[i].UpTotal = round(history[i].UpTotal, .5, 2)
+		history[i].DownTotal = round(history[i].DownTotal, .5, 2)
+
+	}
+	return history
+}
+
+func GetDeviceHistory(databasePath string, deviceMac string) []DevicesHistory {
+	db, err := gorm.Open(sqlite.Open(databasePath), &gorm.Config{})
+	checkErr(err)
+	var history []DevicesHistory
+	db.Where("mac = ?", deviceMac).Find(&history)
+	// 处理浮点数精度问题
+	for i := range history {
+		history[i].UpSpeed = round(history[i].UpSpeed, .5, 2)
+		history[i].DownSpeed = round(history[i].DownSpeed, .5, 2)
+		history[i].UpTotal = round(history[i].UpTotal, .5, 2)
+		history[i].DownTotal = round(history[i].DownTotal, .5, 2)
 	}
 	return history
 }
