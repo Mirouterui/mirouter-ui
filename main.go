@@ -387,7 +387,12 @@ func main() {
 
 	e.GET("/_api/getrouterhistory", func(c echo.Context) error {
 		routernum, err := strconv.Atoi(c.QueryParam("routernum"))
-		if err != nil {
+		fixupfloat := c.QueryParam("fixupfloat")
+		if fixupfloat == "" {
+			fixupfloat = "false"
+		}
+		fixupfloat_bool, err1 := strconv.ParseBool(fixupfloat)
+		if err != nil || err1 != nil {
 			return c.JSON(http.StatusOK, map[string]interface{}{"code": 1100, "msg": "参数错误"})
 		}
 		if !historyEnable {
@@ -396,7 +401,7 @@ func main() {
 				"msg":  "历史数据未开启",
 			})
 		}
-		history := database.GetRouterHistory(databasepath, routernum)
+		history := database.GetRouterHistory(databasepath, routernum, fixupfloat_bool)
 
 		return c.JSON(http.StatusOK, map[string]interface{}{
 			"code":    0,
@@ -406,7 +411,13 @@ func main() {
 
 	e.GET("/_api/getdevicehistory", func(c echo.Context) error {
 		deviceMac := c.QueryParam("devicemac")
-		if deviceMac == "" {
+		fixupfloat := c.QueryParam("fixupfloat")
+		if fixupfloat == "" {
+			fixupfloat = "false"
+		}
+		fixupfloat_bool, err := strconv.ParseBool(fixupfloat)
+
+		if deviceMac == "" || len(deviceMac) != 17 || err != nil {
 			return c.JSON(http.StatusOK, map[string]interface{}{"code": 1100, "msg": "参数错误"})
 		}
 		if !historyEnable {
@@ -415,7 +426,8 @@ func main() {
 				"msg":  "历史数据未开启",
 			})
 		}
-		history := database.GetDeviceHistory(databasepath, deviceMac)
+		history := database.GetDeviceHistory(databasepath, deviceMac, fixupfloat_bool)
+
 
 		return c.JSON(http.StatusOK, map[string]interface{}{
 			"code":    0,
