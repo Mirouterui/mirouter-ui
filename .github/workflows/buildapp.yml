@@ -114,6 +114,8 @@ jobs:
 
       - name: Upload Release Assets
         uses: ncipollo/release-action@v1
+      - name: Upload Release Assets
+        uses: ncipollo/release-action@v1
         with:
           artifacts: "build/"
           token: ${{ secrets.TOKEN }}
