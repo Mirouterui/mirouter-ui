@@ -385,7 +385,7 @@ func main() {
 	// })
 	e.GET("/_api/getconfig", getconfig)
 
-	e.GET("/_api/gethistory", func(c echo.Context) error {
+	e.GET("/_api/getrouterhistory", func(c echo.Context) error {
 		routernum, err := strconv.Atoi(c.QueryParam("routernum"))
 		if err != nil {
 			return c.JSON(http.StatusOK, map[string]interface{}{"code": 1100, "msg": "参数错误"})
@@ -396,7 +396,7 @@ func main() {
 				"msg":  "历史数据未开启",
 			})
 		}
-		history := database.Getdata(databasepath, routernum)
+		history := database.GetRouterHistory(databasepath, routernum)
 
 		return c.JSON(http.StatusOK, map[string]interface{}{
 			"code":    0,
@@ -404,6 +404,24 @@ func main() {
 		})
 	})
 
+	e.GET("/_api/getdevicehistory", func(c echo.Context) error {
+		deviceMac := c.QueryParam("devicemac")
+		if deviceMac == "" {
+			return c.JSON(http.StatusOK, map[string]interface{}{"code": 1100, "msg": "参数错误"})
+		}
+		if !historyEnable {
+			return c.JSON(http.StatusOK, map[string]interface{}{
+				"code": 1101,
+				"msg":  "历史数据未开启",
+			})
+		}
+		history := database.GetDeviceHistory(databasepath, deviceMac)
+
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"code":    0,
+			"history": history,
+		})
+	})
 	e.GET("/_api/flushstatic", func(c echo.Context) error {
 		err := download.DownloadStatic(basedirectory, true)
 		if err != nil {
@@ -420,12 +438,11 @@ func main() {
 	})
 
 	e.GET("/_api/refresh", func(c echo.Context) error {
-		go func() {
-			gettoken(dev)
-		}()
+		gettoken(dev)
+		logrus.Debugln("执行完成")
 		return c.JSON(http.StatusOK, map[string]interface{}{
 			"code": 0,
-			"msg":  "已开始刷新",
+			"msg":  "执行完成",
 		})
 	})
 	e.GET("/_api/quit", func(c echo.Context) error {
