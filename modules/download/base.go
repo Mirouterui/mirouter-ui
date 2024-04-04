@@ -48,7 +48,7 @@ func DownloadStatic(basedirectory string, force bool) error {
 	checkErr(err)
 	logrus.Info("静态资源已存在，版本号为" + string(forntendVersion))
 
-	resp, err := http.Get("https://mrui-api.hzchu.top/checkupdate")
+	resp, err := http.Get("https://mrui-api.hzchu.top/v2/api/checkupdate")
 
 	if err != nil {
 		logrus.Info("无法获取更新信息，跳过检查")
@@ -60,14 +60,21 @@ func DownloadStatic(basedirectory string, force bool) error {
 	checkErr(err)
 	var result map[string]interface{}
 	json.Unmarshal(body, &result)
+	front := result["front"].(map[string]interface{})
+	frontversion := front["version"]
+	frontchangelog := front["changelog"]
 
-	if result["backversion"] != string(Version) {
-		message := fmt.Sprintf("后端程序发现新版本(%v)，请及时更新", result["backversion"])
+	backend := result["backend"].(map[string]interface{})
+	backendversion := backend["version"]
+	backendchangelog := front["changelog"]
+
+	if backendversion != string(Version) {
+		message := fmt.Sprintf("后端程序发现新版本(%v)，请及时更新。更新日志：%v", backendversion, backendchangelog)
 		logrus.Info(message)
 	}
 
-	if result["frontversion"] != string(forntendVersion) {
-		message := fmt.Sprintf("前端文件发现新版本(%v)，正在重新下载", result["frontversion"])
+	if frontversion != string(forntendVersion) {
+		message := fmt.Sprintf("前端文件发现新版本(%v)，在前端页面中进行更新。更新日志：%v", frontversion, frontchangelog)
 		logrus.Info(message)
 		os.RemoveAll(directory)
 		downloadfile(directory)
@@ -120,6 +127,7 @@ func unzip(src, dest string) error {
 				return err
 			}
 			_, err = io.Copy(outFile, rc)
+			checkErr(err)
 			outFile.Close()
 		}
 

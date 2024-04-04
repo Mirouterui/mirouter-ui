@@ -73,6 +73,11 @@ func CheckDatabase(databasePath string) {
 	err = db.AutoMigrate(&DevicesHistory{})
 	checkErr(err)
 	// Perform CRUD operations on the history table using db.Create, db.First, db.Update, db.Delete methods
+	defer func() {
+		sqlDB, err := db.DB()
+		checkErr(err)
+		sqlDB.Close()
+	}()
 }
 
 // Savetodb saves device statistics to the database.
@@ -85,10 +90,22 @@ func CheckDatabase(databasePath string) {
 func Savetodb(databasePath string, dev []config.Dev, tokens map[int]string, maxsaved int) {
 	db, err := gorm.Open(sqlite.Open(databasePath), &gorm.Config{})
 	checkErr(err)
+	var (
+		cpu       float64
+		cpu_tp    int
+		mem       float64
+		upSpeed   float64
+		downSpeed float64
+		upTotal   float64
+		downTotal float64
+		deviceNum int
+		devs      []interface{}
+		mac       string
+	)
 	for i, d := range dev {
 		ip := d.IP
 		routerNum := i
-		cpu, cpu_tp, mem, upSpeed, downSpeed, upTotal, downTotal, deviceNum, devs := getRouterStats(i, tokens, ip)
+		cpu, cpu_tp, mem, upSpeed, downSpeed, upTotal, downTotal, deviceNum, devs = getRouterStats(i, tokens, ip)
 		var count int64
 		db.Model(&RouterHistory{}).Where("router_num = ?", routerNum).Count(&count)
 		if count >= int64(maxsaved) {
@@ -108,6 +125,7 @@ func Savetodb(databasePath string, dev []config.Dev, tokens map[int]string, maxs
 			DownTotal: downTotal,
 			DeviceNum: deviceNum,
 		})
+
 		for _, dev := range devs {
 			devMap := dev.(map[string]interface{})
 
@@ -117,11 +135,11 @@ func Savetodb(databasePath string, dev []config.Dev, tokens map[int]string, maxs
 			var info DeviceInfo
 			err = json.Unmarshal(data, &info)
 			checkErr(err)
-			mac := info.Mac
-			upSpeed := float64(info.UpSpeed)
-			downSpeed := float64(info.DownSpeed)
-			upTotal := float64(info.Upload)
-			downTotal := float64(info.Download)
+			mac = info.Mac
+			upSpeed = float64(info.UpSpeed)
+			downSpeed = float64(info.DownSpeed)
+			upTotal = float64(info.Upload)
+			downTotal = float64(info.Download)
 			db.Create(&DevicesHistory{
 				Mac:       mac,
 				UpSpeed:   upSpeed,
@@ -150,6 +168,11 @@ func Savetodb(databasePath string, dev []config.Dev, tokens map[int]string, maxs
 		})
 
 	}
+	defer func() {
+		sqlDB, err := db.DB()
+		checkErr(err)
+		sqlDB.Close()
+	}()
 }
 
 func GetRouterHistory(databasePath string, routernum int, fixupfloat bool) []RouterHistory {
@@ -171,6 +194,11 @@ func GetRouterHistory(databasePath string, routernum int, fixupfloat bool) []Rou
 		}
 
 	}
+	defer func() {
+		sqlDB, err := db.DB()
+		checkErr(err)
+		sqlDB.Close()
+	}()
 	return history
 }
 
@@ -190,6 +218,11 @@ func GetDeviceHistory(databasePath string, deviceMac string, fixupfloat bool) []
 		}
 
 	}
+	defer func() {
+		sqlDB, err := db.DB()
+		checkErr(err)
+		sqlDB.Close()
+	}()
 	return history
 }
 
