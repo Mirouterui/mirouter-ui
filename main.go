@@ -12,6 +12,8 @@ import (
 	"main/modules/netdata"
 	"main/modules/tp"
 	"net/http"
+
+	// _ "net/http/pprof"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -70,6 +72,9 @@ func init() {
 	routerNames = make(map[int]string)
 	hardwares = make(map[int]string)
 	routerunits = make(map[int]bool)
+	// go func() {
+	// 	logrus.Println(http.ListenAndServe(":6060", nil))
+	// }()
 }
 func GetCpuPercent() float64 {
 	percent, _ := cpu.Percent(time.Second, false)
@@ -471,13 +476,17 @@ func main() {
 	// var contentRewrite = middleware.Rewrite(map[string]string{"/*": "/static/$1"})
 
 	// e.GET("/*", contentHandler, contentRewrite)
-	if tiny == false {
+	if !tiny {
 		directory := "static"
 		if basedirectory != "" {
 			directory = filepath.Join(basedirectory, "static")
 		}
 		logrus.Debug("静态资源目录为:" + directory)
 		e.Static("/", directory)
+	} else if tiny {
+		e.GET("/*", func(c echo.Context) error {
+			return c.JSON(http.StatusNotFound, map[string]interface{}{"code": 404, "msg": "已开启tiny模式"})
+		})
 	}
 	gettoken(dev)
 
