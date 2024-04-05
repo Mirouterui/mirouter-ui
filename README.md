@@ -1,4 +1,4 @@
-![mrui-logo](https://github.com/Mirouterui/mirouter-ui/assets/63234268/da737f28-e8b6-42d7-a21e-70be2d53fb78)
+![mrui-logo](./otherfile/images/logo.png)
 
 ## Mirouter-ui
 
@@ -18,30 +18,15 @@
 
 ## 图片展示
 
-#### 首页
+| 首页                                   | 设备列表     |     设备详情 |
+| -------------------------------------- | ---- | ---- |
+| <img src="./otherfile/images/index.png" alt="index" style="zoom: 33%;" /> | ![Snipaste_2023-08-24_14-53-25](https://github.com/Mirouterui/mirouter-ui/assets/63234268/47309e3a-cc02-479c-a9d3-29cfca235a83) | ![devicelist](./otherfile/images/Snipaste_2024-04-04_23-07-32.png) |
+| **路由器详情** | **温度显示（仅支持部分设备）** | **历史数据统计** |
+| ![router](./otherfile/images/Snipaste_2024-04-04_19-51-37.png) | ![Snipaste_2023-08-25_13-33-54](https://github.com/Mirouterui/mirouter-ui/assets/63234268/0926dafd-a63e-4ee6-bc61-f381c1dfc199) | ![history_index](./otherfile/images/Snipaste_2024-04-04_19-51-58.png) |
+| **Upnp** |  |  |
+| ![upnp](./otherfile/images/Snipaste_2024-04-04_19-52-14.png) |  |  |
 
-![index](https://github.com/thun888/mirouter-ui/assets/63234268/48bbf554-ec03-41dc-b5fd-42b5faeba466)
 
-#### 设备列表
-
-![Snipaste_2023-08-24_14-53-25](https://github.com/Mirouterui/mirouter-ui/assets/63234268/47309e3a-cc02-479c-a9d3-29cfca235a83)
-
-
-#### 设备详情
-
-![device_index](https://github.com/thun888/mirouter-ui/assets/63234268/20c465e1-660b-41bf-a200-973423057d31)
-
-#### 路由器详情
-
-![router_index](https://github.com/thun888/mirouter-ui/assets/63234268/1ddce346-7abd-4816-bc55-fe55d3dc70c9)
-
-#### 温度显示（仅支持部分设备）
-
-![Snipaste_2023-08-25_13-33-54](https://github.com/Mirouterui/mirouter-ui/assets/63234268/0926dafd-a63e-4ee6-bc61-f381c1dfc199)
-
-#### 历史数据统计
-
-![history_index](./otherfile/images/history_index.png)
 ## 部署
 
 ### Docker
@@ -50,15 +35,19 @@
 
 新建一个文件夹，并在该文件夹里运行上述命令，程序会在该文件夹里生成配置文件，修改即可
 
+对于一些支持docker的小米路由器，也可以尝试使用docker运行
+
 ### 直接运行
 
 #### 下载
 
 从[Release](https://github.com/thun888/mirouter-ui/releases/)下载二进制文件
 
-> 可访问[镜像站](https://mrui-api.hzchu.top/down/)以获取更快的速度
+> 可访问[镜像站](http://h5ai.hzchu.top/Mirouter-ui/)以获取更快的速度
 
-如果路由器有足够（内存）空间可以下载对应架构版本的部署在路由器上（ps:使用`uname -m`查看，若为armv7l,请使用armv5版本）
+~~如果路由器有足够（内存）空间可以下载对应架构版本的部署在路由器上（ps:使用`uname -m`查看，若为armv7l,请使用armv5版本）~~
+
+> 不推荐在中低端系列路由器上运行~
 
 ![image](https://github.com/Mirouterui/mirouter-ui/assets/63234268/5dfa3deb-0aab-4198-9170-5af1141b3746)
 
@@ -78,7 +67,7 @@
 ![image](./otherfile/images/config.png)
 
 
-> config.json 会在初次运行时自动下载
+> config.json 会在初次运行时自动导出
 > ip可以根据实际情况修改
 
 **配置项**：
@@ -102,6 +91,8 @@
 | ip         | 192.168.31.1                     | 路由器IP                                |
 | routerunit | false                            | 启用后，程序通过`gopsutil`库获取CPU占用 |
 
+> 配置多个以使用多路由模式，但要注意，如果使用有线/无线组网，数据统计由主路由负责，子路由无法获取信息属于正常情况
+
 **history**项：
 
 | 配置名     | 默认值                           | 解释                                    |
@@ -119,8 +110,9 @@
 | 参数            | 解释                             |
 | --------------- | -------------------------------- |
 | --config        | 配置文件路径，默认为“./config.json”  |
-| --basedirectory | 基础目录路径，在里面存放静态文件 |
+| --workdirectory | 基础目录路径，在里面存放静态文件 |
 | --databasepath | 数据库路径，默认为“./database.db” |
+| --autocheckupdate | bool，是否检查更新（默认true） |
 
 
 然后运行即可
@@ -171,12 +163,10 @@ sudo systemctl enable mrui
 - [x] 深色模式
 - [x] 多路由支持
 - [x] 快捷更新
-- [ ] 设备小工具
 - [x] netdata，api形式兼容
-
-[MRUI开发规划](https://bbs.hzchu.top/d/2-mruikai-fa-gui-hua)
-
-> 主要功能已完成开发,接下来随缘更新😶‍🌫️
+- [ ] prometheus（挖个坑先）
+- [ ] 重构API接口
+- [ ] 进一步简化安装
 
 ## Stars~
 
