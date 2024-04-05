@@ -52,10 +52,12 @@ func DownloadStatic(workdirectory string, force bool, checkupdate bool) error {
 	if checkupdate {
 		resp, err := http.Get("https://mrui-api.hzchu.top/v2/api/checkupdate")
 
+
 		if err != nil {
 			logrus.Info("无法获取更新信息，跳过检查")
 			return err
 		}
+
 
 		defer resp.Body.Close()
 		body, err := io.ReadAll(resp.Body)
@@ -84,7 +86,6 @@ func DownloadStatic(workdirectory string, force bool, checkupdate bool) error {
 	} else {
 		logrus.Info("跳过检查更新")
 	}
-
 	return nil
 }
 func downloadfile(directory string) {
