@@ -48,7 +48,7 @@ var (
 	w24g_cmd          *exec.Cmd
 	w5g_cmd           *exec.Cmd
 	configPath        string
-	basedirectory     string
+	workdirectory     string
 	Version           string
 	databasepath      string
 	flushTokenTime    int
@@ -67,7 +67,7 @@ type Config struct {
 }
 
 func init() {
-	dev, debug, port, tiny, basedirectory, flushTokenTime, databasepath, maxsaved, historyEnable, sampletime, netdata_routernum = config.GetConfigInfo()
+	dev, debug, port, tiny, workdirectory, flushTokenTime, databasepath, maxsaved, historyEnable, sampletime, netdata_routernum = config.GetConfigInfo()
 	tokens = make(map[int]string)
 	routerNames = make(map[int]string)
 	hardwares = make(map[int]string)
@@ -439,7 +439,7 @@ func main() {
 		})
 	})
 	e.GET("/_api/flushstatic", func(c echo.Context) error {
-		err := download.DownloadStatic(basedirectory, true)
+		err := download.DownloadStatic(workdirectory, true, true)
 		if err != nil {
 			return c.JSON(http.StatusOK, map[string]interface{}{
 				"code": 1101,
@@ -478,8 +478,8 @@ func main() {
 	// e.GET("/*", contentHandler, contentRewrite)
 	if !tiny {
 		directory := "static"
-		if basedirectory != "" {
-			directory = filepath.Join(basedirectory, "static")
+		if workdirectory != "" {
+			directory = filepath.Join(workdirectory, "static")
 		}
 		logrus.Debug("静态资源目录为:" + directory)
 		e.Static("/", directory)
