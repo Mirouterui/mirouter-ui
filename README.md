@@ -78,7 +78,7 @@
 | ------ | ------ | ------------------------------------------------------------ |
 | dev    | []     | 路由器信息，参阅`dev项`                                      |
 | history    | [] | 历史记录相关功能，参阅`history项`                                      |
-| tiny   | false  | 启用后，不再下载静态文件，需搭配[在线前端](http://mrui.hzchu.top:8880/)使用 |
+| tiny   | false  | 启用后，不再下载静态文件，需搭配[在线前端](http://mrui-web.hzchu.top/)使用 |
 | netdata_routerid | 0 | 调用netdata api时返回的路由器（对应dev项中第n个） |
 | flushTokenTime | 1800 | 刷新token时间间隔(s) |
 | port   | 6789   | 网页页面端口号                                               |
