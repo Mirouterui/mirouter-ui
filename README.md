@@ -9,6 +9,8 @@
 [![Release And Docker](https://github.com/Mirouterui/mirouter-ui/actions/workflows/buildapp.yml/badge.svg)](https://github.com/Mirouterui/mirouter-ui/actions/workflows/buildapp.yml)
 [![Build DEV version](https://github.com/Mirouterui/mirouter-ui/actions/workflows/buildapp-dev.yml/badge.svg)](https://github.com/Mirouterui/mirouter-ui/actions/workflows/buildapp-dev.yml)
 
+![Alt](https://repobeats.axiom.co/api/embed/5c772eb2070995571e015079682c17dd72a74e2f.svg "Repobeats analytics image")
+
 将本程序部署在小米路由器的网络环境中，配置完成即可食用
 
 后端基于`Golang`，多平台兼容
