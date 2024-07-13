@@ -5,8 +5,11 @@
 > 😎 基于小米路由器API的展示面板
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/thun888/mirouter-ui)](https://hub.docker.com/r/thun888/mirouter-ui)
+[![HitCount](https://hits.dwyl.com/Mirouterui/mirouter-ui.svg?style=flat)](http://hits.dwyl.com/Mirouterui/mirouter-ui)
 [![Release And Docker](https://github.com/Mirouterui/mirouter-ui/actions/workflows/buildapp.yml/badge.svg)](https://github.com/Mirouterui/mirouter-ui/actions/workflows/buildapp.yml)
 [![Build DEV version](https://github.com/Mirouterui/mirouter-ui/actions/workflows/buildapp-dev.yml/badge.svg)](https://github.com/Mirouterui/mirouter-ui/actions/workflows/buildapp-dev.yml)
+
+![Alt](https://repobeats.axiom.co/api/embed/5c772eb2070995571e015079682c17dd72a74e2f.svg "Repobeats analytics image")
 
 将本程序部署在小米路由器的网络环境中，配置完成即可食用
 
@@ -68,6 +71,7 @@
 
 
 > config.json 会在初次运行时自动导出
+> 
 > ip可以根据实际情况修改
 
 **配置项**：
@@ -76,7 +80,7 @@
 | ------ | ------ | ------------------------------------------------------------ |
 | dev    | []     | 路由器信息，参阅`dev项`                                      |
 | history    | [] | 历史记录相关功能，参阅`history项`                                      |
-| tiny   | false  | 启用后，不再下载静态文件，需搭配[在线前端](http://mrui.hzchu.top:8880/)使用 |
+| tiny   | false  | 启用后，不再下载静态文件，需搭配[在线前端](http://mrui-web.hzchu.top/)使用 |
 | netdata_routerid | 0 | 调用netdata api时返回的路由器（对应dev项中第n个） |
 | flushTokenTime | 1800 | 刷新token时间间隔(s) |
 | port   | 6789   | 网页页面端口号                                               |
