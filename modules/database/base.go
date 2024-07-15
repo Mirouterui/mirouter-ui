@@ -154,19 +154,6 @@ func Savetodb(databasePath string, dev []config.Dev, tokens map[int]string, maxs
 
 			}
 		}
-		db.Create(&RouterHistory{
-			Ip:        ip,
-			RouterNum: routerNum,
-			Cpu:       cpu,
-			Cpu_tp:    cpu_tp,
-			Mem:       mem,
-			UpSpeed:   upSpeed,
-			DownSpeed: downSpeed,
-			UpTotal:   upTotal,
-			DownTotal: downTotal,
-			DeviceNum: deviceNum,
-		})
-
 	}
 	defer func() {
 		sqlDB, err := db.DB()

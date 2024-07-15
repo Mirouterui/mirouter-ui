@@ -17,7 +17,7 @@
 
 已在小米路由器R1D,R4A上测试通过
 
-部分新路由无法获取cpu占用，如红米AX6000,AX1800。
+大部分新路由无法获取cpu占用，如红米AX6000,AX1800。
 
 ## 图片展示
 
@@ -46,7 +46,7 @@
 
 从[Release](https://github.com/thun888/mirouter-ui/releases/)下载二进制文件
 
-> 可访问[镜像站](http://h5ai.hzchu.top/Mirouter-ui/)以获取更快的速度
+> 可访问[镜像站](https://mrui-api.hzchu.top/down/)以获取更快的速度
 
 ~~如果路由器有足够（内存）空间可以下载对应架构版本的部署在路由器上（ps:使用`uname -m`查看，若为armv7l,请使用armv5版本）~~
 
