@@ -6,11 +6,15 @@ import (
 	"fmt"
 	"io"
 	"main/modules/config"
+
+	// "main/modules/database"
 	"main/modules/download"
 	login "main/modules/login"
 	"main/modules/netdata"
 	"main/modules/tp"
 	"net/http"
+
+	// _ "net/http/pprof"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -45,7 +49,7 @@ var (
 	w24g_cmd          *exec.Cmd
 	w5g_cmd           *exec.Cmd
 	configPath        string
-	basedirectory     string
+	workdirectory     string
 	Version           string
 	databasepath      string
 	flushTokenTime    int
@@ -64,11 +68,14 @@ type Config struct {
 }
 
 func init() {
-	dev, debug, port, tiny, basedirectory, flushTokenTime, databasepath, maxsaved, historyEnable, sampletime, netdata_routernum = config.GetConfigInfo()
+	dev, debug, port, tiny, workdirectory, flushTokenTime, databasepath, maxsaved, historyEnable, sampletime, netdata_routernum = config.GetConfigInfo()
 	tokens = make(map[int]string)
 	routerNames = make(map[int]string)
 	hardwares = make(map[int]string)
 	routerunits = make(map[int]bool)
+	// go func() {
+	// 	logrus.Println(http.ListenAndServe(":6060", nil))
+	// }()
 }
 func GetCpuPercent() float64 {
 	percent, _ := cpu.Percent(time.Second, false)
@@ -299,8 +306,8 @@ func main() {
 		memAvailableData := netdata.GenerateDataForAllMetrics("mem.available", "mem", "bytes", memAvailable, "used")
 		memTotalData := netdata.GenerateDataForAllMetrics("mem.total", "mem", "bytes", memTotal, "used")
 		memUsageData := netdata.GenerateDataForAllMetrics("mem.used", "mem", "percentage", memUsage, "used")
-		upSpeedData := netdata.GenerateDataForAllMetrics("net.eth0.receivedspeed", "net", "bytes", upSpeed, "received")
-		downSpeedData := netdata.GenerateDataForAllMetrics("net.eth0.sentspeed", "net", "bytes", downSpeed, "sent")
+		upSpeedData := netdata.GenerateDataForAllMetrics("net.eth0.sentspeed", "net", "bytes", upSpeed, "sent")
+		downSpeedData := netdata.GenerateDataForAllMetrics("net.eth0.receivedspeed", "net", "bytes", downSpeed, "received")
 		temperatureData := netdata.GenerateDataForAllMetrics("sensors.temp_thermal_zone0_thermal_thermal_zone0", "sensors", "celsius", temperature, "temperature")
 		deviceonlineData := netdata.GenerateDataForAllMetrics("device.online", "device", "count", deviceonline, "online")
 		uploadtotalData := netdata.GenerateDataForAllMetrics("net.eth0.sent", "net", "bytes", uploadtotal, "total")
@@ -310,8 +317,8 @@ func main() {
 			"mem.available":          memAvailableData,
 			"mem.total":              memTotalData,
 			"mem.used":               memUsageData,
-			"net.eth0.receivedspeed": upSpeedData,
-			"net.eth0.sentspeed":     downSpeedData,
+			"net.eth0.receivedspeed": downSpeedData,
+			"net.eth0.sentspeed":     upSpeedData,
 			"device.online":          deviceonlineData,
 			"net.eth0.sent":          uploadtotalData,
 			"net.eth0.received":      downloadtotalData,
@@ -396,6 +403,23 @@ func main() {
 	// 		})
 	// 	}
 	// 	history := database.Getdata(databasepath, routernum)
+	// e.GET("/_api/getrouterhistory", func(c echo.Context) error {
+	// 	routernum, err := strconv.Atoi(c.QueryParam("routernum"))
+	// 	fixupfloat := c.QueryParam("fixupfloat")
+	// 	if fixupfloat == "" {
+	// 		fixupfloat = "false"
+	// 	}
+	// 	fixupfloat_bool, err1 := strconv.ParseBool(fixupfloat)
+	// 	if err != nil || err1 != nil {
+	// 		return c.JSON(http.StatusOK, map[string]interface{}{"code": 1100, "msg": "参数错误"})
+	// 	}
+	// 	if !historyEnable {
+	// 		return c.JSON(http.StatusOK, map[string]interface{}{
+	// 			"code": 1101,
+	// 			"msg":  "历史数据未开启",
+	// 		})
+	// 	}
+	// 	history := database.GetRouterHistory(databasepath, routernum, fixupfloat_bool)
 
 	// 	return c.JSON(http.StatusOK, map[string]interface{}{
 	// 		"code":    0,
@@ -404,7 +428,7 @@ func main() {
 	// })
 
 	e.GET("/_api/flushstatic", func(c echo.Context) error {
-		err := download.DownloadStatic(basedirectory, true)
+		err := download.DownloadStatic(workdirectory, true, true)
 		if err != nil {
 			return c.JSON(http.StatusOK, map[string]interface{}{
 				"code": 1101,
@@ -419,12 +443,11 @@ func main() {
 	})
 
 	e.GET("/_api/refresh", func(c echo.Context) error {
-		go func() {
-			gettoken(dev)
-		}()
+		gettoken(dev)
+		logrus.Debugln("执行完成")
 		return c.JSON(http.StatusOK, map[string]interface{}{
 			"code": 0,
-			"msg":  "已开始刷新",
+			"msg":  "执行完成",
 		})
 	})
 	e.GET("/_api/quit", func(c echo.Context) error {
@@ -442,16 +465,19 @@ func main() {
 	// var contentRewrite = middleware.Rewrite(map[string]string{"/*": "/static/$1"})
 
 	// e.GET("/*", contentHandler, contentRewrite)
-	if tiny == false {
+	if !tiny {
 		directory := "static"
-		if basedirectory != "" {
-			directory = filepath.Join(basedirectory, "static")
+		if workdirectory != "" {
+			directory = filepath.Join(workdirectory, "static")
 		}
 		logrus.Debug("静态资源目录为:" + directory)
 		e.Static("/", directory)
+	} else if tiny {
+		e.GET("/*", func(c echo.Context) error {
+			return c.JSON(http.StatusNotFound, map[string]interface{}{"code": 404, "msg": "已开启tiny模式"})
+		})
 	}
 	gettoken(dev)
-	e.Start(":" + fmt.Sprint(port))
 
 	// database.CheckDatabase(databasepath)
 	c.AddFunc("@every "+strconv.Itoa(flushTokenTime)+"s", func() { gettoken(dev) })
@@ -468,4 +494,6 @@ func main() {
 		<-quit
 		e.Close()
 	}()
+
+	e.Start(":" + fmt.Sprint(port))
 }

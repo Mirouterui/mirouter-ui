@@ -19,7 +19,7 @@ var (
 
 // 获取温度
 func GetTemperature(c echo.Context, routernum int, hardware string) (bool, string, string, string, string) {
-	if dev[routernum].RouterUnit == false {
+	if !dev[routernum].RouterUnit {
 		return false, "-233", "-233", "-233", "-233"
 	}
 	var cpu_out, w24g_out, w5g_out []byte

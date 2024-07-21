@@ -7,17 +7,17 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - dev
+      - main
 
 
 jobs:
-  build_win:
+  build:
     runs-on: ubuntu-20.04
     steps:
 
     - name: Checkout code
       uses: actions/checkout@v3
-
+      
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
@@ -25,54 +25,32 @@ jobs:
 
     - name: Install UPX
       run: sudo apt-get install upx
-    
+
     - name: download modules
       run: go mod download
 
     - name: Run build script
-      run: bash build.sh dev win
-
-  build_linux:
-    runs-on: ubuntu-20.04
-    steps:
-
-    - name: Checkout code
-      uses: actions/checkout@v3
-
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.21'
-
-    - name: Install UPX
-      run: sudo apt-get install upx
-    
-    - name: download modules
-      run: go mod download
-
-    - name: Run build script
-      run: bash build.sh dev linux
-
-  build_darwin:
-    runs-on: ubuntu-20.04
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.21'
-
-    - name: Install UPX
-      run: sudo apt-get install upx
-    
-    - name: download modules
-      run: go mod download
-
-    - name: Run build script
-      run: bash build.sh dev darwin
-
+      # 传入commit sha
+      run: bash build.sh ${{ github.sha }}
+      
+    # 安装 rclone
+    # dev版本不另外发release
+    - name: Install rclone
+      run: |
+        cd ~
+        curl https://rclone.org/install.sh | sudo bash
+    # 配置 rclone
+    - name: Configure rclone
+      run: |
+        mkdir -p ~/.config/rclone
+        cat >  ~/.config/rclone/rclone.conf  << EOF
+        ${{ secrets.RCLONECONFIG }}
+        EOF
+    - name: Sync to OneDrive
+      run: |
+        sudo timedatectl set-timezone "Asia/Shanghai"
+        rclone mkdir one:/share/Mirouter-ui/dev/${{ github.sha }}
+        rclone sync ./build one:/share/Mirouter-ui/dev/${{ github.sha }} 
         
   builddocker:
     runs-on: ubuntu-20.04
@@ -100,3 +78,5 @@ jobs:
           platforms: linux/amd64,linux/386,linux/arm64,linux/arm/v7,linux/arm/v6
           push: true
           tags: thun888/mirouter-ui:dev
+          build-args: |
+            VERSION=${{ github.sha }} 
