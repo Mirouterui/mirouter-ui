@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"io"
 	"main/modules/config"
-	"main/modules/database"
+
+	// "main/modules/database"
 	"main/modules/download"
 	login "main/modules/login"
 	"main/modules/netdata"
@@ -390,54 +391,42 @@ func main() {
 	// })
 	e.GET("/_api/getconfig", getconfig)
 
-	e.GET("/_api/getrouterhistory", func(c echo.Context) error {
-		routernum, err := strconv.Atoi(c.QueryParam("routernum"))
-		fixupfloat := c.QueryParam("fixupfloat")
-		if fixupfloat == "" {
-			fixupfloat = "false"
-		}
-		fixupfloat_bool, err1 := strconv.ParseBool(fixupfloat)
-		if err != nil || err1 != nil {
-			return c.JSON(http.StatusOK, map[string]interface{}{"code": 1100, "msg": "参数错误"})
-		}
-		if !historyEnable {
-			return c.JSON(http.StatusOK, map[string]interface{}{
-				"code": 1101,
-				"msg":  "历史数据未开启",
-			})
-		}
-		history := database.GetRouterHistory(databasepath, routernum, fixupfloat_bool)
+	// e.GET("/_api/gethistory", func(c echo.Context) error {
+	// 	routernum, err := strconv.Atoi(c.QueryParam("routernum"))
+	// 	if err != nil {
+	// 		return c.JSON(http.StatusOK, map[string]interface{}{"code": 1100, "msg": "参数错误"})
+	// 	}
+	// 	if !historyEnable {
+	// 		return c.JSON(http.StatusOK, map[string]interface{}{
+	// 			"code": 1101,
+	// 			"msg":  "历史数据未开启",
+	// 		})
+	// 	}
+	// 	history := database.Getdata(databasepath, routernum)
+	// e.GET("/_api/getrouterhistory", func(c echo.Context) error {
+	// 	routernum, err := strconv.Atoi(c.QueryParam("routernum"))
+	// 	fixupfloat := c.QueryParam("fixupfloat")
+	// 	if fixupfloat == "" {
+	// 		fixupfloat = "false"
+	// 	}
+	// 	fixupfloat_bool, err1 := strconv.ParseBool(fixupfloat)
+	// 	if err != nil || err1 != nil {
+	// 		return c.JSON(http.StatusOK, map[string]interface{}{"code": 1100, "msg": "参数错误"})
+	// 	}
+	// 	if !historyEnable {
+	// 		return c.JSON(http.StatusOK, map[string]interface{}{
+	// 			"code": 1101,
+	// 			"msg":  "历史数据未开启",
+	// 		})
+	// 	}
+	// 	history := database.GetRouterHistory(databasepath, routernum, fixupfloat_bool)
 
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"code":    0,
-			"history": history,
-		})
-	})
+	// 	return c.JSON(http.StatusOK, map[string]interface{}{
+	// 		"code":    0,
+	// 		"history": history,
+	// 	})
+	// })
 
-	e.GET("/_api/getdevicehistory", func(c echo.Context) error {
-		deviceMac := c.QueryParam("devicemac")
-		fixupfloat := c.QueryParam("fixupfloat")
-		if fixupfloat == "" {
-			fixupfloat = "false"
-		}
-		fixupfloat_bool, err := strconv.ParseBool(fixupfloat)
-
-		if deviceMac == "" || len(deviceMac) != 17 || err != nil {
-			return c.JSON(http.StatusOK, map[string]interface{}{"code": 1100, "msg": "参数错误"})
-		}
-		if !historyEnable {
-			return c.JSON(http.StatusOK, map[string]interface{}{
-				"code": 1101,
-				"msg":  "历史数据未开启",
-			})
-		}
-		history := database.GetDeviceHistory(databasepath, deviceMac, fixupfloat_bool)
-
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"code":    0,
-			"history": history,
-		})
-	})
 	e.GET("/_api/flushstatic", func(c echo.Context) error {
 		err := download.DownloadStatic(workdirectory, true, true)
 		if err != nil {
@@ -490,12 +479,12 @@ func main() {
 	}
 	gettoken(dev)
 
-	database.CheckDatabase(databasepath)
+	// database.CheckDatabase(databasepath)
 	c.AddFunc("@every "+strconv.Itoa(flushTokenTime)+"s", func() { gettoken(dev) })
 
-	if historyEnable {
-		c.AddFunc("@every "+strconv.Itoa(sampletime)+"s", func() { database.Savetodb(databasepath, dev, tokens, maxsaved) })
-	}
+	// if historyEnable {
+	// 	c.AddFunc("@every "+strconv.Itoa(sampletime)+"s", func() { database.Savetodb(databasepath, dev, tokens, maxsaved) })
+	// }
 	c.Start()
 
 	quit := make(chan os.Signal, 1)
