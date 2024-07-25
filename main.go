@@ -162,7 +162,7 @@ func main() {
 		case "xqsystem/router_name":
 			return c.JSON(http.StatusOK, map[string]interface{}{"code": 0, "routerName": routerNames[routernum]})
 
-		case "misystem/status", "misystem/devicelist", "xqsystem/internet_connect", "xqsystem/fac_info", "misystem/messages", "xqsystem/upnp":
+		case "misystem/status", "misystem/devicelist", "xqsystem/internet_connect", "xqsystem/fac_info", "misystem/messages", "xqsystem/upnp", "xqnetwork/diagdevicelist":
 			url := fmt.Sprintf("http://%s/cgi-bin/luci/;stok=%s/api/%s", ip, tokens[routernum], apipath)
 			resp, err := http.Get(url)
 			if err != nil {
