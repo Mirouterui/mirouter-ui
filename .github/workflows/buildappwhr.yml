@@ -114,29 +114,33 @@ jobs:
           name: mirouter-ui-darwin
           path: ./build
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
-        with:
-          tag_name: ${{ github.event.inputs.version }}whr
-          release_name: Release ${{ github.event.inputs.version }} without history record
-          draft: true
-          prerelease: false
-
       - name: Upload Release Assets
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "build/*"
+          token: ${{ secrets.TOKEN }}
+          tag: ${{ github.event.inputs.version }}whr
+          name: Release ${{ github.event.inputs.version }} without history record
+          draft: true
+  
+      # 安装 rclone
+      - name: Install rclone
         run: |
-          for file in ./build/*; do
-            if [ -f "$file" ]; then
-              echo "Uploading $file"
-              curl \
-                -H "Authorization: token ${{ secrets.TOKEN }}" \
-                -H "Content-Type: $(file -b --mime-type $file)" \
-                --data-binary @"$file" \
-                "${{ steps.create_release.outputs.upload_url }}=$(basename $file)"
-            fi
-          done
+          cd ~
+          curl https://rclone.org/install.sh | sudo bash
+
+      # 配置 rclone
+      - name: Configure rclone
+        run: |
+          mkdir -p ~/.config/rclone
+          cat >  ~/.config/rclone/rclone.conf  << EOF
+          ${{ secrets.RCLONECONFIG }}
+          EOF
+      - name: Sync to OneDrive
+        run: |
+          sudo timedatectl set-timezone "Asia/Shanghai"
+          rclone mkdir one:/share/Mirouter-ui/whr/${{ github.event.inputs.version }}
+          rclone sync ./build one:/share/Mirouter-ui/whr/${{ github.event.inputs.version }}
         
   builddocker:
     runs-on: ubuntu-20.04
