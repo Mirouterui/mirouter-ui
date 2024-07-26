@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"main/modules/config"
 	"os/exec"
+	"strconv"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
@@ -18,9 +20,9 @@ var (
 )
 
 // 获取温度
-func GetTemperature(c echo.Context, routernum int, hardware string) (bool, string, string, string, string) {
+func GetTemperature(c echo.Context, routernum int, hardware string, dev []config.Dev) (bool, int, int, int, int) {
 	if !dev[routernum].RouterUnit {
-		return false, "-233", "-233", "-233", "-233"
+		return false, -233, -233, -233, -233
 	}
 	var cpu_out, w24g_out, w5g_out []byte
 	var err1, err2, err3 error
@@ -64,12 +66,15 @@ func GetTemperature(c echo.Context, routernum int, hardware string) (bool, strin
 		w24g_tp = "-233"
 		w5g_tp = "-233"
 	default:
-		return false, "-233", "-233", "-233", "-233"
+		return false, -233, -233, -233, -233
 	}
 
 	if err1 != nil || err2 != nil || err3 != nil {
 		logrus.Error("获取温度失败,报错信息为" + err1.Error() + err2.Error() + err3.Error())
 	}
-
-	return true, cpu_tp, fanspeed, w24g_tp, w5g_tp
+	cpu_tp_int, _ := strconv.Atoi(strings.ReplaceAll(cpu_tp, "\n", ""))
+	fanspeed_int, _ := strconv.Atoi(strings.ReplaceAll(fanspeed, "\n", ""))
+	w24g_tp_int, _ := strconv.Atoi(strings.ReplaceAll(w24g_tp, "\n", ""))
+	w5g_tp_int, _ := strconv.Atoi(strings.ReplaceAll(w5g_tp, "\n", ""))
+	return true, cpu_tp_int, fanspeed_int, w24g_tp_int, w5g_tp_int
 }

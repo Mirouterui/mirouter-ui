@@ -199,7 +199,7 @@ func main() {
 		if err != nil {
 			return c.JSON(http.StatusOK, map[string]interface{}{"code": 1100, "msg": "参数错误"})
 		}
-		status, cpu_tp, fanspeed, w24g_tp, w5g_tp := tp.GetTemperature(c, routernum, hardwares[routernum])
+		status, cpu_tp, fanspeed, w24g_tp, w5g_tp := tp.GetTemperature(c, routernum, hardwares[routernum], dev)
 		if status {
 			return c.JSON(http.StatusOK, map[string]interface{}{
 				"code":     0,
