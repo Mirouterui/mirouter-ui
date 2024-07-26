@@ -26,6 +26,15 @@ func GetTemperature(c echo.Context, routernum int, hardware string) (bool, strin
 	var err1, err2, err3 error
 	var cpu_tp, fanspeed, w24g_tp, w5g_tp string
 	switch hardware {
+	case "CR8809":
+		cpu_cmd = exec.Command("cat", "/sys/class/thermal/thermal_zone0/temp")
+		w5g_cmd = exec.Command("cat", "/sys/class/ieee80211/phy0/device/net/wifi0/thermal/temp") //不知道是不是
+		cpu_out, err1 = cpu_cmd.Output()
+		w5g_out, err3 = w5g_cmd.Output()
+		cpu_tp = string(cpu_out)
+		fanspeed = "-233"
+		w24g_tp = "-233"
+		w5g_tp = string(w5g_out)
 	case "RA69":
 		cpu_cmd = exec.Command("cat", "/sys/class/thermal/thermal_zone0/temp")
 		w24g_cmd = exec.Command("cat", "/sys/class/ieee80211/phy0/device/net/wifi1/thermal/temp")
