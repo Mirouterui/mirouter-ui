@@ -69,6 +69,7 @@ type Config struct {
 	Address      string       `json:"address"`
 }
 
+// init loads the server configuration and initializes global variables required for application startup.
 func init() {
 	// 加载配置
 	cfg, err := config.LoadConfig()
@@ -98,11 +99,13 @@ func init() {
 	// 	logrus.Println(http.ListenAndServe(":6060", nil))
 	// }()
 }
+// GetCpuPercent returns the current CPU usage as a float between 0 and 1, sampled over one second.
 func GetCpuPercent() float64 {
 	percent, _ := cpu.Percent(time.Second, false)
 	return percent[0] / 100
 }
 
+// getconfig returns the server's configuration and device list as a JSON response, omitting sensitive information such as passwords.
 func getconfig(c *gin.Context) {
 	type DevNoPassword struct {
 		Key     string `json:"key"`
@@ -140,6 +143,7 @@ func getconfig(c *gin.Context) {
 	})
 }
 
+// gettoken retrieves authentication tokens, router names, and hardware information for each device and stores them in global maps keyed by device index.
 func gettoken(dev []config.Dev) {
 	for i, d := range dev {
 		token, routerName, hardware := login.GetToken(d.Password, d.Key, d.IP)
@@ -151,6 +155,8 @@ func gettoken(dev []config.Dev) {
 	}
 }
 
+// handleRouterAPI sends a GET request to the specified Xiaomi router API endpoint and returns the parsed JSON response.
+// If the router is local and the API path is "/misystem/status", the response is augmented with the current CPU load.
 func handleRouterAPI(routernum int, apipath string) (map[string]interface{}, error) {
 	ip := dev[routernum].IP
 	url := fmt.Sprintf("http://%s/cgi-bin/luci/;stok=%s/api/%s", ip, tokens[routernum], apipath)
@@ -172,6 +178,7 @@ func handleRouterAPI(routernum int, apipath string) (map[string]interface{}, err
 	return result, nil
 }
 
+// main initializes and runs the backend server for managing Xiaomi routers, setting up HTTP routes, middleware, scheduled tasks, and graceful shutdown handling.
 func main() {
 	// starttime := int(time.Now().Unix())
 	logrus.Info("Current backend version: " + Version)

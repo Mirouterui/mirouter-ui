@@ -17,6 +17,9 @@ var (
 	Version string
 )
 
+// DownloadStatic manages the static resource directory by downloading, verifying, and updating static files as needed.
+//
+// If `force` is true, the existing static directory is deleted before downloading resources. If `checkupdate` is true, the function checks a remote API for newer frontend or backend versions and updates the static resources if a new version is found. Returns an error if reading the local static resource version fails or if update information cannot be retrieved.
 func DownloadStatic(workdirectory string, force bool, checkupdate bool) error {
 	directory := "static"
 	if workdirectory != "" {
@@ -87,6 +90,7 @@ func DownloadStatic(workdirectory string, force bool, checkupdate bool) error {
 	return nil
 }
 
+// downloadfile downloads a zip archive of static resources from a remote server and extracts its contents into the specified directory.
 func downloadfile(directory string) {
 	resp, err := http.Get("http://mrui-api.hzchu.top/downloadstatic")
 	checkErr(err)
@@ -103,6 +107,8 @@ func downloadfile(directory string) {
 	checkErr(err)
 }
 
+// unzip extracts the contents of a zip archive from src into the dest directory, trimming the first 26 characters from each file name and ensuring files are placed safely within dest.
+// Returns an error if extraction fails or if an illegal file path is detected.
 func unzip(src, dest string) error {
 	r, err := zip.OpenReader(src)
 	if err != nil {

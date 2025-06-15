@@ -25,6 +25,7 @@ var (
 	hardware   string
 )
 
+// createNonce generates a nonce string using a fixed type, a hardcoded MAC address, the current Unix timestamp, and a random integer.
 func createNonce() string {
 	typeVar := 0
 	deviceID := "00:e0:4f:27:3d:09" //MAC
@@ -57,6 +58,11 @@ func newhashPassword(pwd string, nonce string, key string) string {
 
 	return noncePwdKeyHashStr
 }
+// getrouterinfo retrieves router information and determines the encryption mode.
+//
+// Sends an HTTP request to the router's init_info API endpoint, parses the response for router name and hardware model, and checks if the new encryption mode is enabled.
+//
+// Returns true if the router uses the new encryption mode, along with the router name and hardware model. Returns false and empty strings if the request or parsing fails.
 func getrouterinfo(ip string) (bool, string, string) {
 
 	// 发送 GET 请求
@@ -98,6 +104,7 @@ func getrouterinfo(ip string) (bool, string, string) {
 	return false, routername, hardware
 }
 
+// CheckRouterAvailability returns true if the router at the specified IP address is reachable via HTTP within 5 seconds.
 func CheckRouterAvailability(ip string) bool {
 	client := http.Client{
 		Timeout: 5 * time.Second,
@@ -111,6 +118,9 @@ func CheckRouterAvailability(ip string) bool {
 
 	return true
 }
+// GetToken authenticates with the router at the specified IP address and retrieves an authentication token, router name, and hardware information.
+// If the router is unavailable or authentication fails, the function logs the error, waits 5 seconds, and exits the program.
+// Returns the authentication token, router name, and hardware string on success. If the router is unavailable, returns an empty token and an error message.
 func GetToken(password string, key string, ip string) (string, string, string) {
 	logrus.Debug("Checking router availability...")
 	if !CheckRouterAvailability(ip) {

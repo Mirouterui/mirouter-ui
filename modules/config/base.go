@@ -53,6 +53,7 @@ var (
 	autocheckupdate string
 )
 
+// init initializes command-line flags for configuration, working directory, database path, and auto-update settings with default values based on the executable's location.
 func init() {
 	appPath, _ := os.Executable()
 	flag.StringVar(&configPath, "config", filepath.Join(filepath.Dir(appPath), "config.yaml"), "configuration file path")
@@ -62,6 +63,9 @@ func init() {
 	flag.Parse()
 }
 
+// LoadConfig loads the application configuration from a YAML file, environment variables, and command-line flags.
+// It sets default values, creates a default config file if missing, validates required fields, and initializes global configuration state.
+// Returns the loaded AppConfig instance or an error if loading or validation fails.
 func LoadConfig() (*AppConfig, error) {
 	v := viper.New()
 	v.SetConfigFile(configPath)

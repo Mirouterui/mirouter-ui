@@ -91,7 +91,8 @@ func CheckDatabase(databasePath string) {
 // - databasePath: the path to the database.
 // - dev: an array of device configurations.
 // - tokens: a map of token IDs to strings.
-// - maxsaved: the maximum number of records to delete.
+// Savetodb collects router and device statistics from configured devices and stores them in the database, maintaining a maximum number of records per router and device.
+// For each device, it fetches current statistics, inserts a new history record, and deletes the oldest record if the maximum is exceeded. Device statistics are similarly stored and pruned by MAC address.
 func Savetodb(databasePath string, dev []config.Dev, tokens map[int]string, maxsaved int) {
 	db, err := gorm.Open(sqlite.Open(databasePath), &gorm.Config{})
 	checkErr(err)
@@ -171,6 +172,7 @@ func Savetodb(databasePath string, dev []config.Dev, tokens map[int]string, maxs
 	}()
 }
 
+// GetRouterHistory retrieves all RouterHistory records for the specified router number from the database at the given path.
 func GetRouterHistory(databasePath string, routernum int, fixupfloat bool) []RouterHistory {
 	db, err := gorm.Open(sqlite.Open(databasePath), &gorm.Config{})
 	checkErr(err)
@@ -184,6 +186,7 @@ func GetRouterHistory(databasePath string, routernum int, fixupfloat bool) []Rou
 	return history
 }
 
+// GetDeviceHistory retrieves all historical records for a device with the specified MAC address from the database.
 func GetDeviceHistory(databasePath string, deviceMac string, fixupfloat bool) []DevicesHistory {
 	db, err := gorm.Open(sqlite.Open(databasePath), &gorm.Config{})
 	checkErr(err)
@@ -197,6 +200,9 @@ func GetDeviceHistory(databasePath string, deviceMac string, fixupfloat bool) []
 	return history
 }
 
+// getRouterStats retrieves router statistics and the current device list from the router's HTTP API.
+// It returns CPU load (percent), CPU temperature, memory usage (percent), WAN upload/download speeds and totals, the number of online devices, and the device list for the specified router.
+// If the token for the router is missing, all statistics are returned as zero and the device list is empty.
 func getRouterStats(routernum int, tokens map[int]string, ip string) (int, int, int, int, int, int, int, int, []interface{}) {
 	if tokens[routernum] == "" {
 		return 0, 0, 0, 0, 0, 0, 0, 0, []interface{}{}
@@ -229,13 +235,14 @@ func getRouterStats(routernum int, tokens map[int]string, ip string) (int, int, 
 
 // func roundToOneDecimal(num int) int {
 // 	return math.Round(num*100) / 100
-// }
+// checkErr logs the provided error at debug level if it is non-nil.
 
 func checkErr(err error) {
 	if err != nil {
 		logrus.Debug(err)
 	}
 }
+// GetCpuPercent returns the current CPU usage as a fraction between 0 and 1, measured over a one-second interval.
 func GetCpuPercent() float64 {
 	percent, _ := cpu.Percent(time.Second, false)
 	return percent[0] / 100
