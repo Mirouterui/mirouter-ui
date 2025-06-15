@@ -1,141 +1,135 @@
 package config
 
 import (
-	"encoding/json"
 	"flag"
-	. "main/modules/download"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strconv"
 	"time"
 
+	"github.com/Mirouterui/mirouter-ui/modules/download"
 	"github.com/sirupsen/logrus"
-)
-
-var (
-	password          string
-	key               string
-	ip                string
-	debug             bool
-	port              int
-	tiny              bool
-	routerunit        bool
-	configPath        string
-	workdirectory     string
-	databasepath      string
-	historyEnable     bool
-	dev               []Dev
-	maxsaved          int
-	flushTokenTime    int
-	sampletime        int
-	netdata_routernum int
-	autocheckupdate   string
+	"github.com/spf13/viper"
 )
 
 type Dev struct {
-	Password   string `json:"password"`
-	Key        string `json:"key"`
-	IP         string `json:"ip"`
-	RouterUnit bool   `json:"routerunit"`
+	Password   string `mapstructure:"password"`
+	Key        string `mapstructure:"key"`
+	IP         string `mapstructure:"ip"`
+	RouterUnit bool   `mapstructure:"routerunit"`
+	IsLocal    bool   `mapstructure:"is_local"`
 }
+
 type History struct {
-	Enable     bool `json:"enable"`
-	MaxDeleted int  `json:"maxsaved"`
-	Sampletime int  `json:"sampletime"`
-}
-type Config struct {
-	Dev               []Dev   `json:"dev"`
-	History           History `json:"history"`
-	Debug             bool    `json:"debug"`
-	Port              int     `json:"port"`
-	Tiny              bool    `json:"tiny"`
-	FlushTokenTime    int     `json:"flushTokenTime"`
-	Netdata_routernum int     `json:"netdata_routernum"`
+	Enable     bool `mapstructure:"enable"`
+	MaxDeleted int  `mapstructure:"maxsaved"`
+	Sampletime int  `mapstructure:"sampletime"`
 }
 
-func GetConfigInfo() (dev []Dev, debug bool, port int, tiny bool, workdirectory string, flushTokenTime int, databasepath string, maxsaved int, historyEnable bool, sampletime int, netdata_routernum int) {
+type AppConfig struct {
+	Dev               []Dev   `mapstructure:"dev"`
+	History           History `mapstructure:"history"`
+	Debug             bool    `mapstructure:"debug"`
+	Port              int     `mapstructure:"port"`
+	Address           string  `mapstructure:"address"`
+	Tiny              bool    `mapstructure:"tiny"`
+	FlushTokenTime    int     `mapstructure:"flushTokenTime"`
+	Netdata_routernum int     `mapstructure:"netdata_routernum"`
+	Workdirectory     string  `mapstructure:"-"`
+	Databasepath      string  `mapstructure:"-"`
+	ApiKey            string  `mapstructure:"api_key"`
+	SafeMode          bool    `mapstructure:"safemode"`
+}
+
+var (
+	// Global configuration instance
+	Cfg *AppConfig
+
+	// Command line parameters
+	configPath      string
+	workdirectory   string
+	databasepath    string
+	autocheckupdate string
+)
+
+func init() {
 	appPath, _ := os.Executable()
-
-	flag.StringVar(&configPath, "config", filepath.Join(filepath.Dir(appPath), "config.json"), "配置文件路径")
-	flag.StringVar(&workdirectory, "workdirectory", "", "工作目录路径")
-	flag.StringVar(&databasepath, "databasepath", filepath.Join(filepath.Dir(appPath), "database.db"), "数据库路径")
-	flag.StringVar(&autocheckupdate, "autocheckupdate", "true", "自动检查更新")
+	flag.StringVar(&configPath, "config", filepath.Join(filepath.Dir(appPath), "config.yaml"), "configuration file path")
+	flag.StringVar(&workdirectory, "workdirectory", "", "working directory path")
+	flag.StringVar(&databasepath, "databasepath", filepath.Join(filepath.Dir(appPath), "database.db"), "database path")
+	flag.StringVar(&autocheckupdate, "autocheckupdate", "true", "auto check updates")
 	flag.Parse()
+}
 
-	autocheckupdatebool, _ := strconv.ParseBool(autocheckupdate)
+func LoadConfig() (*AppConfig, error) {
+	v := viper.New()
+	v.SetConfigFile(configPath)
+	v.SetConfigType("yaml")
 
-	logrus.Info("配置文件路径为:" + configPath)
-	data, err := os.ReadFile(configPath)
+	// Set default values
+	v.SetDefault("dev", []Dev{
+		{
+			Password:   "",
+			Key:        "a2ffa5c9be07488bbb04a3a47d3c5f6a",
+			IP:         "192.168.31.1",
+			RouterUnit: false,
+			IsLocal:    false,
+		},
+	})
+	v.SetDefault("history.enable", false)
+	v.SetDefault("history.maxsaved", 3000)
+	v.SetDefault("history.sampletime", 86400)
+	v.SetDefault("debug", true)
+	v.SetDefault("port", 6789)
+	v.SetDefault("tiny", false)
+	v.SetDefault("flushTokenTime", 1800)
+	v.SetDefault("netdata_routernum", 0)
+	v.SetDefault("api_key", "")
+	v.SetDefault("safemode", true)
+	v.SetDefault("address", "0.0.0.0")
 
-	if err != nil {
-		logrus.Info("未找到配置文件，正在从程序内部导出")
-		// 使用你的结构体创建一个默认的配置实例
-		config := Config{
-			Dev: []Dev{
-				{
-					Password:   "",
-					Key:        "a2ffa5c9be07488bbb04a3a47d3c5f6a",
-					IP:         "192.168.31.1",
-					RouterUnit: false,
-				},
-			},
-			History: History{
-				Enable:     false,
-				MaxDeleted: 3000,
-				Sampletime: 86400,
-			},
-			Debug:             true,
-			Port:              6789,
-			Tiny:              false,
-			FlushTokenTime:    1800,
-			Netdata_routernum: 0,
+	// Support environment variable overrides
+	v.AutomaticEnv()
+	v.SetEnvPrefix("MIROUTERUI")
+
+	// Read configuration file
+	if err := v.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			if err := v.SafeWriteConfig(); err != nil {
+				return nil, fmt.Errorf("failed to create default config file: %w", err)
+			}
+			logrus.Info("default config file created, please modify it and restart")
+			time.Sleep(5 * time.Second)
+			os.Exit(0)
+		} else {
+			return nil, fmt.Errorf("failed to read config file: %w", err)
 		}
-		configContent, err := json.MarshalIndent(config, "", "  ")
-		checkErr(err)
-		err = os.WriteFile(configPath, configContent, 0644)
-		checkErr(err)
-		logrus.Info("配置文件导出完成，请修改配置文件")
-		logrus.Info("5秒后退出程序")
-		time.Sleep(5 * time.Second)
-		os.Exit(1)
 	}
 
-	var config Config
-	err = json.Unmarshal(data, &config)
-	if err != nil {
-		logrus.Info("配置文件存在错误")
+	Cfg = &AppConfig{}
+	if err := v.Unmarshal(Cfg); err != nil {
+		return nil, fmt.Errorf("failed to parse config: %w", err)
 	}
-	dev = config.Dev
-	debug = config.Debug
-	port = config.Port
-	tiny = config.Tiny
-	maxsaved = config.History.MaxDeleted
-	historyEnable = config.History.Enable
-	sampletime = config.History.Sampletime
-	flushTokenTime = config.FlushTokenTime
-	netdata_routernum = config.Netdata_routernum
-	// logrus.Info(password)
-	// logrus.Info(key)
-	if !tiny {
-		DownloadStatic(workdirectory, false, autocheckupdatebool)
+
+	Cfg.Workdirectory = workdirectory
+	Cfg.Databasepath = databasepath
+
+	if len(Cfg.Dev) == 0 {
+		return nil, fmt.Errorf("router information not filled, please check config file")
 	}
-	if debug {
+
+	if Cfg.Debug {
 		logrus.SetLevel(logrus.DebugLevel)
 	} else {
 		logrus.SetLevel(logrus.InfoLevel)
 	}
-	numDevs := len(dev)
-	if numDevs == 0 {
-		logrus.Info("未填写路由器信息，请检查配置文件")
-		logrus.Info("5秒后退出程序")
-		time.Sleep(5 * time.Second)
-		os.Exit(1)
-	}
-	return dev, debug, port, tiny, workdirectory, flushTokenTime, databasepath, maxsaved, historyEnable, sampletime, netdata_routernum
-}
 
-func checkErr(err error) {
-	if err != nil {
-		panic(err)
+	// Check for updates
+	autocheckupdatebool, _ := strconv.ParseBool(autocheckupdate)
+	if !Cfg.Tiny {
+		download.DownloadStatic(Cfg.Workdirectory, false, autocheckupdatebool)
 	}
+
+	return Cfg, nil
 }

@@ -3,3 +3,6 @@ build/
 dist/
 main.exe
 aa.sh
+static/*
+mirouter-ui.exe
+database.db
