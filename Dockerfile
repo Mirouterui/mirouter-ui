@@ -6,6 +6,8 @@ WORKDIR /app
 
 COPY . .
 
+RUN echo "Building version: $VERSION"
+
 RUN go mod download
 
 RUN go build -ldflags "-X 'main.Version=$VERSION'"  -o main .
@@ -18,4 +20,4 @@ COPY --from=builder /app/main /app/main
 
 EXPOSE 6789
 
-CMD ["./main","--config=/app/data/config.json","--workdirectory=/app/data/","--databasepath=/app/data/database.db","--autocheckupdate=false"]
+CMD ["./main","--config=/app/data/config.yaml","--workdirectory=/app/data/","--databasepath=/app/data/database.db","--autocheckupdate=false"]
