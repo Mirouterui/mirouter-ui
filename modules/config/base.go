@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -18,7 +19,7 @@ type Dev struct {
 	Key        string `mapstructure:"key"`
 	IP         string `mapstructure:"ip"`
 	RouterUnit bool   `mapstructure:"routerunit"`
-	IsLocal    bool   `mapstructure:"is_local"`
+	IsLocal    bool   `mapstructure:"islocal"`
 }
 
 type History struct {
@@ -95,8 +96,8 @@ func LoadConfig() (*AppConfig, error) {
 
 	// Read configuration file
 	if err := v.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			if err := v.SafeWriteConfig(); err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			if err := v.WriteConfigAs(configPath); err != nil {
 				return nil, fmt.Errorf("failed to create default config file: %w", err)
 			}
 			logrus.Info("default config file created, please modify it and restart")
@@ -106,7 +107,6 @@ func LoadConfig() (*AppConfig, error) {
 			return nil, fmt.Errorf("failed to read config file: %w", err)
 		}
 	}
-
 	Cfg = &AppConfig{}
 	if err := v.Unmarshal(Cfg); err != nil {
 		return nil, fmt.Errorf("failed to parse config: %w", err)

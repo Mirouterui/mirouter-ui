@@ -4,13 +4,13 @@ dev:
     key: "a2ffa5c9be07488bbb04a3a47d3c5f6a"  # 路由器密钥
     ip: "192.168.31.1"  # 路由器IP地址
     routerunit: false  # 是否为路由器单元
-    is_local: false  # 是否为本地模式
+    islocal: false  # 是否为本地模式
 
 # 历史记录配置
 history:
   enable: true  # 是否启用历史记录
   maxsaved: 3000  # 最大保存记录数
-  sampletime: 10  # 采样时间（秒）
+  sampletime: 300  # 采样时间（秒）
 
 # 应用配置
 debug: true  # 调试模式
