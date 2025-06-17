@@ -41,7 +41,9 @@ type TemperatureResult struct {
 	Status  TemperatureStatus `json:"status"`
 }
 
-// 获取温度
+// GetTemperature retrieves temperature and fan speed data from a local router device based on its hardware type.
+//
+// It executes hardware-specific system commands to obtain CPU temperature, fan speed, and WiFi radio temperatures (2.4GHz and 5GHz), returning the results and individual success statuses in a TemperatureResult struct. If the device is not local or the hardware type is unsupported, all values are zero and statuses are false.
 func GetTemperature(c interface{}, routerNum int, hardware string, dev []config.Dev) TemperatureResult {
 	result := TemperatureResult{
 		Success: false,
