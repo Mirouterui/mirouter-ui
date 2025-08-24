@@ -3,7 +3,6 @@ dev:
   - password: ""  # 路由器密码
     key: "a2ffa5c9be07488bbb04a3a47d3c5f6a"  # 路由器密钥
     ip: "192.168.31.1"  # 路由器IP地址
-    onrouter: false  # 是否在路由器上运行
     islocal: false  # 是否为本地模式
 
 # 历史记录配置

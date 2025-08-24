@@ -18,7 +18,6 @@ type Dev struct {
 	Password string `mapstructure:"password"`
 	Key      string `mapstructure:"key"`
 	IP       string `mapstructure:"ip"`
-	OnRouter bool   `mapstructure:"onrouter"`
 	IsLocal  bool   `mapstructure:"islocal"`
 }
 
@@ -74,7 +73,6 @@ func LoadConfig() (*AppConfig, error) {
 			Password: "",
 			Key:      "a2ffa5c9be07488bbb04a3a47d3c5f6a",
 			IP:       "192.168.31.1",
-			OnRouter: false,
 			IsLocal:  false,
 		},
 	})

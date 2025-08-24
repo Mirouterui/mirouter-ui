@@ -77,6 +77,9 @@ func GetTemperature(c interface{}, routerNum int, hardware string, dev []config.
 		fanSpeed = "0"
 		w24gTemp = "0"
 		w5gTemp = string(w5gOut)
+		logrus.Debug(cpuTemp)
+		logrus.Debug(w5gOut)
+
 	case "RA69":
 		cpuCmd = exec.Command("cat", "/sys/class/thermal/thermal_zone0/temp")
 		w24gCmd = exec.Command("cat", "/sys/class/ieee80211/phy0/device/net/wifi1/thermal/temp")

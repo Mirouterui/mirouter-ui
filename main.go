@@ -41,7 +41,6 @@ var (
 	hardwares         map[int]string
 	isLocals          map[int]bool
 	tiny              bool
-	onrouter          bool
 	dev               []config.Dev
 	cpu_cmd           *exec.Cmd
 	w24g_cmd          *exec.Cmd
@@ -267,6 +266,8 @@ func main() {
 			return
 		}
 		result := tp.GetTemperature(c, routernum, hardwares[routernum], dev)
+		logrus.Debug(result)
+
 		if result.Success {
 			c.JSON(http.StatusOK, gin.H{
 				"data":   result.Data,
