@@ -1,14 +1,17 @@
 package config
 
 import (
-	"encoding/json"
+	"errors"
 	"flag"
+	"io"
 	. "main/modules/download"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
 	"time"
 
+	"github.com/Mirouterui/mirouter-ui/modules/download"
 	"github.com/sirupsen/logrus"
 )
 
@@ -21,7 +24,7 @@ var (
 	tiny              bool
 	routerunit        bool
 	configPath        string
-	workdirectory     string
+	basedirectory     string
 	databasepath      string
 	historyEnable     bool
 	dev               []Dev
@@ -29,19 +32,20 @@ var (
 	flushTokenTime    int
 	sampletime        int
 	netdata_routernum int
-	autocheckupdate   string
 )
 
 type Dev struct {
-	Password   string `json:"password"`
-	Key        string `json:"key"`
-	IP         string `json:"ip"`
-	RouterUnit bool   `json:"routerunit"`
+	Password   string `mapstructure:"password"`
+	Key        string `mapstructure:"key"`
+	IP         string `mapstructure:"ip"`
+	RouterUnit bool   `mapstructure:"routerunit"`
+	IsLocal    bool   `mapstructure:"islocal"`
 }
+
 type History struct {
-	Enable     bool `json:"enable"`
-	MaxDeleted int  `json:"maxsaved"`
-	Sampletime int  `json:"sampletime"`
+	Enable     bool `mapstructure:"enable"`
+	MaxDeleted int  `mapstructure:"maxsaved"`
+	Sampletime int  `mapstructure:"sampletime"`
 }
 type Config struct {
 	Dev               []Dev   `json:"dev"`
@@ -53,53 +57,36 @@ type Config struct {
 	Netdata_routernum int     `json:"netdata_routernum"`
 }
 
-func GetConfigInfo() (dev []Dev, debug bool, port int, tiny bool, workdirectory string, flushTokenTime int, databasepath string, maxsaved int, historyEnable bool, sampletime int, netdata_routernum int) {
-	appPath, _ := os.Executable()
-
-	flag.StringVar(&configPath, "config", filepath.Join(filepath.Dir(appPath), "config.json"), "配置文件路径")
-	flag.StringVar(&workdirectory, "workdirectory", "", "工作目录路径")
-	flag.StringVar(&databasepath, "databasepath", filepath.Join(filepath.Dir(appPath), "database.db"), "数据库路径")
-	flag.StringVar(&autocheckupdate, "autocheckupdate", "true", "自动检查更新")
+func GetConfigInfo() (dev []Dev, debug bool, port int, tiny bool, basedirectory string, flushTokenTime int, databasepath string, maxsaved int, historyEnable bool, sampletime int, netdata_routernum int) {
+	flag.StringVar(&configPath, "config", "", "配置文件路径")
+	flag.StringVar(&basedirectory, "basedirectory", "", "基础目录路径")
+	flag.StringVar(&databasepath, "databasepath", "", "数据库路径")
 	flag.Parse()
-
-	autocheckupdatebool, _ := strconv.ParseBool(autocheckupdate)
-
+	appPath, err := os.Executable()
+	checkErr(err)
+	if configPath == "" {
+		configPath = filepath.Join(filepath.Dir(appPath), "config.json")
+	}
+	if databasepath == "" {
+		databasepath = filepath.Join(filepath.Dir(appPath), "database.db")
+	}
 	logrus.Info("配置文件路径为:" + configPath)
 	data, err := os.ReadFile(configPath)
-
 	if err != nil {
-		logrus.Info("未找到配置文件，正在从程序内部导出")
-		// 使用你的结构体创建一个默认的配置实例
-		config := Config{
-			Dev: []Dev{
-				{
-					Password:   "",
-					Key:        "a2ffa5c9be07488bbb04a3a47d3c5f6a",
-					IP:         "192.168.31.1",
-					RouterUnit: false,
-				},
-			},
-			History: History{
-				Enable:     false,
-				MaxDeleted: 3000,
-				Sampletime: 86400,
-			},
-			Debug:             true,
-			Port:              6789,
-			Tiny:              false,
-			FlushTokenTime:    1800,
-			Netdata_routernum: 0,
-		}
-		configContent, err := json.MarshalIndent(config, "", "  ")
+		logrus.Info("未找到配置文件，正在下载")
+		resp, err := http.Get("https://mrui-api.hzchu.top/downloadconfig")
 		checkErr(err)
-		err = os.WriteFile(configPath, configContent, 0644)
+		defer resp.Body.Close()
+		out, err := os.Create(configPath)
 		checkErr(err)
-		logrus.Info("配置文件导出完成，请修改配置文件")
+		defer out.Close()
+		_, err = io.Copy(out, resp.Body)
+		checkErr(err)
+		logrus.Info("下载配置文件完成，请修改配置文件")
 		logrus.Info("5秒后退出程序")
 		time.Sleep(5 * time.Second)
 		os.Exit(1)
 	}
-
 	var config Config
 	err = json.Unmarshal(data, &config)
 	if err != nil {
@@ -116,10 +103,10 @@ func GetConfigInfo() (dev []Dev, debug bool, port int, tiny bool, workdirectory 
 	netdata_routernum = config.Netdata_routernum
 	// logrus.Info(password)
 	// logrus.Info(key)
-	if !tiny {
-		DownloadStatic(workdirectory, false, autocheckupdatebool)
+	if tiny == false {
+		DownloadStatic(basedirectory, false)
 	}
-	if debug {
+	if debug == true {
 		logrus.SetLevel(logrus.DebugLevel)
 	} else {
 		logrus.SetLevel(logrus.InfoLevel)
@@ -131,7 +118,7 @@ func GetConfigInfo() (dev []Dev, debug bool, port int, tiny bool, workdirectory 
 		time.Sleep(5 * time.Second)
 		os.Exit(1)
 	}
-	return dev, debug, port, tiny, workdirectory, flushTokenTime, databasepath, maxsaved, historyEnable, sampletime, netdata_routernum
+	return dev, debug, port, tiny, basedirectory, flushTokenTime, databasepath, maxsaved, historyEnable, sampletime, netdata_routernum
 }
 
 func checkErr(err error) {

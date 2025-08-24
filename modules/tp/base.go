@@ -2,79 +2,111 @@ package tp
 
 import (
 	"encoding/json"
-	"main/modules/config"
 	"os/exec"
-	"strconv"
-	"strings"
 
-	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
 )
 
 var (
-	hardware string
-	dev      []config.Dev
-	cpu_cmd  *exec.Cmd
-	w24g_cmd *exec.Cmd
-	w5g_cmd  *exec.Cmd
+	cpuCmd  *exec.Cmd
+	w24gCmd *exec.Cmd
+	w5gCmd  *exec.Cmd
 )
 
-// 获取温度
-func GetTemperature(c echo.Context, routernum int, hardware string, dev []config.Dev) (bool, int, int, int, int) {
-	if !dev[routernum].RouterUnit {
-		return false, -233, -233, -233, -233
-	}
-	var cpu_out, w24g_out, w5g_out []byte
-	var err1, err2, err3 error
-	var cpu_tp, fanspeed, w24g_tp, w5g_tp string
-	switch hardware {
-	case "CR8809":
-		cpu_cmd = exec.Command("cat", "/sys/class/thermal/thermal_zone0/temp")
-		w5g_cmd = exec.Command("cat", "/sys/class/ieee80211/phy0/device/net/wifi0/thermal/temp") //不知道是不是
-		cpu_out, err1 = cpu_cmd.Output()
-		w5g_out, err3 = w5g_cmd.Output()
-		cpu_tp = string(cpu_out)
-		fanspeed = "-233"
-		w24g_tp = "-233"
-		w5g_tp = string(w5g_out)
-	case "RA69":
-		cpu_cmd = exec.Command("cat", "/sys/class/thermal/thermal_zone0/temp")
-		w24g_cmd = exec.Command("cat", "/sys/class/ieee80211/phy0/device/net/wifi1/thermal/temp")
-		w5g_cmd = exec.Command("cat", "/sys/class/ieee80211/phy0/device/net/wifi0/thermal/temp")
-		cpu_out, err1 = cpu_cmd.Output()
-		w24g_out, err2 = w24g_cmd.Output()
-		w5g_out, err3 = w5g_cmd.Output()
+// TemperatureData 存储温度数据
+type TemperatureData struct {
+	CPU      int `json:"cpu"`
+	FanSpeed int `json:"fanspeed"`
+	W24G     int `json:"w24g"`
+	W5G      int `json:"w5g"`
+}
 
-		cpu_tp = string(cpu_out)
-		fanspeed = "-233"
-		w24g_tp = string(w24g_out)
-		w5g_tp = string(w5g_out)
+// TemperatureStatus 存储温度数据的状态
+type TemperatureStatus struct {
+	CPU      bool `json:"cpu"`
+	FanSpeed bool `json:"fanspeed"`
+	W24G     bool `json:"w24g"`
+	W5G      bool `json:"w5g"`
+}
+
+// TemperatureResult 返回的温度结果
+type TemperatureResult struct {
+	Success bool              `json:"success"`
+	Data    TemperatureData   `json:"data"`
+	Status  TemperatureStatus `json:"status"`
+}
+
+// 获取温度
+func GetTemperature(c echo.Context, routernum int, hardware string) (bool, string, string, string, string) {
+	if dev[routernum].RouterUnit == false {
+		return false, "-233", "-233", "-233", "-233"
+	}
+
+	var cpuOut, w24gOut, w5gOut []byte
+	var cpuErr, w24gErr, w5gErr error
+	var cpuTemp, fanSpeed, w24gTemp, w5gTemp string
+
+	switch hardware {
+	case "RA69":
+		cpuCmd = exec.Command("cat", "/sys/class/thermal/thermal_zone0/temp")
+		w24gCmd = exec.Command("cat", "/sys/class/ieee80211/phy0/device/net/wifi1/thermal/temp")
+		w5gCmd = exec.Command("cat", "/sys/class/ieee80211/phy0/device/net/wifi0/thermal/temp")
+		cpuOut, cpuErr = cpuCmd.Output()
+		w24gOut, w24gErr = w24gCmd.Output()
+		w5gOut, w5gErr = w5gCmd.Output()
+
+		cpuTpTemp, _ := strconv.Atoi(strings.TrimSpace(string(cpuOut)))
+		cpuTemp = strconv.Itoa(cpuTpTemp / 1000)
+		fanSpeed = "0"
+		w24gTemp = string(w24gOut)
+		w5gTemp = string(w5gOut)
 	case "R1D":
-		type Ubus_data struct {
+		type ubusData struct {
 			Fanspeed    string `json:"fanspeed"`
 			Temperature string `json:"temperature"`
 		}
-		cpu_cmd = exec.Command("ubus", "call", "rmonitor", "status")
-		cpu_out, err1 = cpu_cmd.Output()
-		var data Ubus_data
-		err := json.Unmarshal(cpu_out, &data)
+		cpuCmd = exec.Command("ubus", "call", "rmonitor", "status")
+		cpuOut, cpuErr = cpuCmd.Output()
+		var data ubusData
+		err := json.Unmarshal(cpuOut, &data)
 		if err != nil {
-			logrus.Error("获取温度失败,报错信息为" + err.Error())
+			logrus.Error("Failed to get temperature, error message: " + err.Error())
 		}
-		cpu_tp = data.Temperature
-		fanspeed = data.Fanspeed
-		w24g_tp = "-233"
-		w5g_tp = "-233"
+		cpuTemp = data.Temperature
+		fanSpeed = data.Fanspeed
+		w24gTemp = "0"
+		w5gTemp = "0"
+	case "RB06":
+		cpuCmd = exec.Command("cat", "/sys/class/thermal/thermal_zone0/temp")
+		w24gCmd = exec.Command("iwpriv", "wl0", "stat", "|", "grep", "CurrentTemperature")
+		w5gCmd = exec.Command("iwpriv", "wl1", "stat", "|", "grep", "CurrentTemperature")
+		cpuOut, cpuErr = cpuCmd.Output()
+		w24gOut, w24gErr = w24gCmd.Output()
+		w5gOut, w5gErr = w5gCmd.Output()
+
+		cpuTemp = string(cpuOut)
+		re := regexp.MustCompile(`CurrentTemperature\s*=\s*(\d+)`)
+		matches24g := re.FindStringSubmatch(string(w24gOut))
+		if len(matches24g) > 1 {
+			w24gTemp = matches24g[1]
+		} else {
+			w24gTemp = "0"
+		}
+		matches5g := re.FindStringSubmatch(string(w5gOut))
+		if len(matches5g) > 1 {
+			w5gTemp = matches5g[1]
+		} else {
+			w5gTemp = "0"
+		}
+		fanSpeed = "0"
 	default:
-		return false, -233, -233, -233, -233
+		return false, "-233", "-233", "-233", "-233"
 	}
 
-	if err1 != nil || err2 != nil || err3 != nil {
-		logrus.Error("获取温度失败,报错信息为" + err1.Error() + err2.Error() + err3.Error())
+	// 处理错误并记录日志
+	if cpuErr != nil || w24gErr != nil || w5gErr != nil {
+		logrus.Error("Failed to get temperature, error message: " + cpuErr.Error() + w24gErr.Error() + w5gErr.Error())
 	}
-	cpu_tp_int, _ := strconv.Atoi(strings.ReplaceAll(cpu_tp, "\n", ""))
-	fanspeed_int, _ := strconv.Atoi(strings.ReplaceAll(fanspeed, "\n", ""))
-	w24g_tp_int, _ := strconv.Atoi(strings.ReplaceAll(w24g_tp, "\n", ""))
-	w5g_tp_int, _ := strconv.Atoi(strings.ReplaceAll(w5g_tp, "\n", ""))
-	return true, cpu_tp_int, fanspeed_int, w24g_tp_int, w5g_tp_int
+
+	return true, cpu_tp, fanspeed, w24g_tp, w5g_tp
 }
