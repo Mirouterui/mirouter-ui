@@ -5,16 +5,10 @@ import (
 	_ "flag"
 	"fmt"
 	"io"
-	"main/modules/config"
-
-	// "main/modules/database"
-	"main/modules/download"
-	login "main/modules/login"
-	"main/modules/tp"
 	"net/http"
 
 	"github.com/Mirouterui/mirouter-ui/modules/config"
-	"github.com/Mirouterui/mirouter-ui/modules/database"
+	// "github.com/Mirouterui/mirouter-ui/modules/database"
 	"github.com/Mirouterui/mirouter-ui/modules/download"
 	login "github.com/Mirouterui/mirouter-ui/modules/login"
 	"github.com/Mirouterui/mirouter-ui/modules/tp"
@@ -47,7 +41,7 @@ var (
 	hardwares         map[int]string
 	isLocals          map[int]bool
 	tiny              bool
-	routerunit        bool
+	onrouter          bool
 	dev               []config.Dev
 	cpu_cmd           *exec.Cmd
 	w24g_cmd          *exec.Cmd
@@ -268,7 +262,6 @@ func main() {
 
 	r.GET("/routerapi/:routernum/systemapi/gettemperature", func(c *gin.Context) {
 		routernum, err := strconv.Atoi(c.Param("routernum"))
-		logrus.Debug(tokens)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"msg": "Parameter error"})
 			return
@@ -294,7 +287,7 @@ func main() {
 
 	// 	switch chart {
 	// 	case "system.cpu":
-	// 		if routerunits[netdata_routernum] {
+	// 		if onrouters[netdata_routernum] {
 	// 			cpuLoad = int(GetCpuPercent() * 100)
 	// 		}
 	// 		data := netdata.GenerateArray("system.cpu", cpuLoad, starttime, "system.cpu", "system.cpu")
@@ -336,46 +329,46 @@ func main() {
 
 	r.GET("/systemapi/getconfig", getconfig)
 
-	r.GET("/systemapi/getrouterhistory", func(c *gin.Context) {
-		routernum, err := strconv.Atoi(c.Query("routernum"))
-		fixupfloat := c.Query("fixupfloat")
-		if fixupfloat == "" {
-			fixupfloat = "false"
-		}
-		fixupfloat_bool, err1 := strconv.ParseBool(fixupfloat)
-		if err != nil || err1 != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"msg": "Parameter error"})
-			return
-		}
-		if !historyEnable {
-			c.JSON(http.StatusServiceUnavailable, gin.H{"msg": "History data is not enabled"})
-			return
-		}
-		history := database.GetRouterHistory(databasepath, routernum, fixupfloat_bool)
+	// r.GET("/systemapi/getrouterhistory", func(c *gin.Context) {
+	// 	routernum, err := strconv.Atoi(c.Query("routernum"))
+	// 	fixupfloat := c.Query("fixupfloat")
+	// 	if fixupfloat == "" {
+	// 		fixupfloat = "false"
+	// 	}
+	// 	fixupfloat_bool, err1 := strconv.ParseBool(fixupfloat)
+	// 	if err != nil || err1 != nil {
+	// 		c.JSON(http.StatusBadRequest, gin.H{"msg": "Parameter error"})
+	// 		return
+	// 	}
+	// 	if !historyEnable {
+	// 		c.JSON(http.StatusServiceUnavailable, gin.H{"msg": "History data is not enabled"})
+	// 		return
+	// 	}
+	// 	history := database.GetRouterHistory(databasepath, routernum, fixupfloat_bool)
 
-		c.JSON(http.StatusOK, gin.H{"history": history})
-	})
+	// 	c.JSON(http.StatusOK, gin.H{"history": history})
+	// })
 
-	r.GET("/systemapi/getdevicehistory", func(c *gin.Context) {
-		deviceMac := c.Query("devicemac")
-		fixupfloat := c.Query("fixupfloat")
-		if fixupfloat == "" {
-			fixupfloat = "false"
-		}
-		fixupfloat_bool, err := strconv.ParseBool(fixupfloat)
+	// r.GET("/systemapi/getdevicehistory", func(c *gin.Context) {
+	// 	deviceMac := c.Query("devicemac")
+	// 	fixupfloat := c.Query("fixupfloat")
+	// 	if fixupfloat == "" {
+	// 		fixupfloat = "false"
+	// 	}
+	// 	fixupfloat_bool, err := strconv.ParseBool(fixupfloat)
 
-		if deviceMac == "" || len(deviceMac) != 17 || err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"msg": "Parameter error"})
-			return
-		}
-		if !historyEnable {
-			c.JSON(http.StatusServiceUnavailable, gin.H{"msg": "History data is not enabled"})
-			return
-		}
-		history := database.GetDeviceHistory(databasepath, deviceMac, fixupfloat_bool)
+	// 	if deviceMac == "" || len(deviceMac) != 17 || err != nil {
+	// 		c.JSON(http.StatusBadRequest, gin.H{"msg": "Parameter error"})
+	// 		return
+	// 	}
+	// 	if !historyEnable {
+	// 		c.JSON(http.StatusServiceUnavailable, gin.H{"msg": "History data is not enabled"})
+	// 		return
+	// 	}
+	// 	history := database.GetDeviceHistory(databasepath, deviceMac, fixupfloat_bool)
 
-		c.JSON(http.StatusOK, gin.H{"history": history})
-	})
+	// 	c.JSON(http.StatusOK, gin.H{"history": history})
+	// })
 
 	r.GET("/systemapi/flushstatic", func(c *gin.Context) {
 		// logrus.Debugln(c.Query("api_key"))
@@ -415,11 +408,11 @@ func main() {
 	// database.CheckDatabase(databasepath)
 	c.AddFunc("@every "+strconv.Itoa(flushTokenTime)+"s", func() { gettoken(dev) })
 
-	if historyEnable {
-		c.AddFunc("@every "+strconv.Itoa(sampletime)+"s", func() {
-			database.Savetodb(databasepath, dev, tokens, maxsaved)
-		})
-	}
+	// if historyEnable {
+	// 	c.AddFunc("@every "+strconv.Itoa(sampletime)+"s", func() {
+	// 		database.Savetodb(databasepath, dev, tokens, maxsaved)
+	// 	})
+	// }
 	c.Start()
 
 	quit := make(chan os.Signal, 1)

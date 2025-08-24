@@ -17,9 +17,6 @@ import (
 )
 
 var (
-	password   string
-	key        string
-	ip         string
 	token      string
 	routername string
 	hardware   string
@@ -27,7 +24,7 @@ var (
 
 func createNonce() string {
 	typeVar := 0
-	deviceID := "" //无效参数
+	deviceID := "00:e0:4f:27:3d:09" //MAC
 	timeVar := int(time.Now().Unix())
 	randomVar := rand.Intn(10000)
 	return fmt.Sprintf("%d_%s_%d_%d", typeVar, deviceID, timeVar, randomVar)

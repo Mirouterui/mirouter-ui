@@ -3,6 +3,11 @@ package tp
 import (
 	"encoding/json"
 	"os/exec"
+	"regexp"
+	"strconv"
+	"strings"
+
+	"github.com/Mirouterui/mirouter-ui/modules/config"
 
 	"github.com/sirupsen/logrus"
 )
@@ -37,9 +42,25 @@ type TemperatureResult struct {
 }
 
 // 获取温度
-func GetTemperature(c echo.Context, routernum int, hardware string) (bool, string, string, string, string) {
-	if dev[routernum].RouterUnit == false {
-		return false, "-233", "-233", "-233", "-233"
+func GetTemperature(c interface{}, routerNum int, hardware string, dev []config.Dev) TemperatureResult {
+	result := TemperatureResult{
+		Success: false,
+		Data: TemperatureData{
+			CPU:      0,
+			FanSpeed: 0,
+			W24G:     0,
+			W5G:      0,
+		},
+		Status: TemperatureStatus{
+			CPU:      false,
+			FanSpeed: false,
+			W24G:     false,
+			W5G:      false,
+		},
+	}
+
+	if !dev[routerNum].IsLocal {
+		return result
 	}
 
 	var cpuOut, w24gOut, w5gOut []byte
@@ -47,6 +68,15 @@ func GetTemperature(c echo.Context, routernum int, hardware string) (bool, strin
 	var cpuTemp, fanSpeed, w24gTemp, w5gTemp string
 
 	switch hardware {
+	case "CR8809":
+		cpuCmd = exec.Command("cat", "/sys/class/thermal/thermal_zone0/temp")
+		w5gCmd = exec.Command("cat", "/sys/class/ieee80211/phy0/device/net/wifi0/thermal/temp")
+		cpuOut, cpuErr = cpuCmd.Output()
+		w5gOut, w5gErr = w5gCmd.Output()
+		cpuTemp = string(cpuOut)
+		fanSpeed = "0"
+		w24gTemp = "0"
+		w5gTemp = string(w5gOut)
 	case "RA69":
 		cpuCmd = exec.Command("cat", "/sys/class/thermal/thermal_zone0/temp")
 		w24gCmd = exec.Command("cat", "/sys/class/ieee80211/phy0/device/net/wifi1/thermal/temp")
@@ -100,7 +130,7 @@ func GetTemperature(c echo.Context, routernum int, hardware string) (bool, strin
 		}
 		fanSpeed = "0"
 	default:
-		return false, "-233", "-233", "-233", "-233"
+		return result
 	}
 
 	// 处理错误并记录日志
@@ -108,5 +138,27 @@ func GetTemperature(c echo.Context, routernum int, hardware string) (bool, strin
 		logrus.Error("Failed to get temperature, error message: " + cpuErr.Error() + w24gErr.Error() + w5gErr.Error())
 	}
 
-	return true, cpu_tp, fanspeed, w24g_tp, w5g_tp
+	// 转换温度数据并更新状态
+	if cpuTemp != "" {
+		result.Data.CPU, _ = strconv.Atoi(strings.ReplaceAll(cpuTemp, "\n", ""))
+		result.Status.CPU = cpuErr == nil
+	}
+
+	if fanSpeed != "" {
+		result.Data.FanSpeed, _ = strconv.Atoi(strings.ReplaceAll(fanSpeed, "\n", ""))
+		result.Status.FanSpeed = true
+	}
+
+	if w24gTemp != "" {
+		result.Data.W24G, _ = strconv.Atoi(strings.ReplaceAll(w24gTemp, "\n", ""))
+		result.Status.W24G = w24gErr == nil
+	}
+
+	if w5gTemp != "" {
+		result.Data.W5G, _ = strconv.Atoi(strings.ReplaceAll(w5gTemp, "\n", ""))
+		result.Status.W5G = w5gErr == nil
+	}
+
+	result.Success = true
+	return result
 }
