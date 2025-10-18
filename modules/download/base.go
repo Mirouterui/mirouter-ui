@@ -50,7 +50,7 @@ func DownloadStatic(workdirectory string, force bool, checkupdate bool) error {
 
 	// Check for updates
 	if checkupdate {
-		resp, err := http.Get("https://mrui-api.hzchu.top/v2/api/checkupdate")
+		resp, err := http.Get("https://mrui-api.hzchu.top/v3/api/checkupdate")
 
 		if err != nil {
 			logrus.Info("Failed to get update information, skipping check")

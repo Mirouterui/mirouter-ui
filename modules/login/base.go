@@ -17,9 +17,6 @@ import (
 )
 
 var (
-	password   string
-	key        string
-	ip         string
 	token      string
 	routername string
 	hardware   string

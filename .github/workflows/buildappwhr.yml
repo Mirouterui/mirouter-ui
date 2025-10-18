@@ -99,17 +99,17 @@ jobs:
     needs: [build_win, build_linux, build_darwin]
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v5
         with:
           name: mirouter-ui-win
           path: ./build
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v5
         with:
           name: mirouter-ui-linux
           path: ./build
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v5
         with:
           name: mirouter-ui-darwin
           path: ./build

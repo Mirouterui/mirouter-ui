@@ -61,10 +61,10 @@ then
 # Building darwin_amd64
 echo "Building darwin_amd64"
 GOOS=darwin GOARCH=amd64 go build -ldflags "-X 'main.Version=$VERSION'" -o $OUTPUT_DIR/mirouterui_darwin_amd64_noupx_$VERSION main.go
-upx --best -o $OUTPUT_DIR/mirouterui_darwin_amd64_$VERSION $OUTPUT_DIR/mirouterui_darwin_amd64_noupx_$VERSION
+upx --force-macos --best -o $OUTPUT_DIR/mirouterui_darwin_amd64_$VERSION $OUTPUT_DIR/mirouterui_darwin_amd64_noupx_$VERSION
 
 # Building darwin_arm64
 echo "Building darwin_arm64"
 GOOS=darwin GOARCH=arm64 go build -ldflags "-X 'main.Version=$VERSION'" -o $OUTPUT_DIR/mirouterui_darwin_arm64_noupx_$VERSION main.go
-upx --best -o $OUTPUT_DIR/mirouterui_darwin_arm64_$VERSION $OUTPUT_DIR/mirouterui_darwin_arm64_noupx_$VERSION
+upx --force-macos --best -o $OUTPUT_DIR/mirouterui_darwin_arm64_$VERSION $OUTPUT_DIR/mirouterui_darwin_arm64_noupx_$VERSION
 fi

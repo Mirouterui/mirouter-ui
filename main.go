@@ -15,7 +15,6 @@ import (
 
 	// _ "net/http/pprof"
 	"os"
-	"os/exec"
 	"os/signal"
 	"path/filepath"
 	"strconv"
@@ -29,35 +28,24 @@ import (
 )
 
 var (
-	password          string
-	key               string
-	token             string
-	tokens            map[int]string
-	debug             bool
-	port              int
-	routerName        string
-	routerNames       map[int]string
-	hardware          string
-	hardwares         map[int]string
-	isLocals          map[int]bool
-	tiny              bool
-	routerunit        bool
-	dev               []config.Dev
-	cpu_cmd           *exec.Cmd
-	w24g_cmd          *exec.Cmd
-	w5g_cmd           *exec.Cmd
-	configPath        string
-	workdirectory     string
-	Version           string
-	databasepath      string
-	flushTokenTime    int
-	maxsaved          int
-	historyEnable     bool
-	sampletime        int
-	netdata_routernum int
-	safemode          bool
-	api_key           string
-	address           string
+	tokens         map[int]string
+	debug          bool
+	port           int
+	routerNames    map[int]string
+	hardwares      map[int]string
+	isLocals       map[int]bool
+	tiny           bool
+	dev            []config.Dev
+	workdirectory  string
+	Version        string
+	databasepath   string
+	flushTokenTime int
+	maxsaved       int
+	historyEnable  bool
+	sampletime     int
+	safemode       bool
+	api_key        string
+	address        string
 )
 
 type Config struct {
@@ -84,7 +72,6 @@ func init() {
 	historyEnable = cfg.History.Enable
 	sampletime = cfg.History.Sampletime
 	flushTokenTime = cfg.FlushTokenTime
-	netdata_routernum = cfg.Netdata_routernum
 	workdirectory = cfg.Workdirectory
 	databasepath = cfg.Databasepath
 	safemode = cfg.SafeMode
@@ -288,7 +275,7 @@ func main() {
 
 	// 	switch chart {
 	// 	case "system.cpu":
-	// 		if routerunits[netdata_routernum] {
+	// 		if onrouters[netdata_routernum] {
 	// 			cpuLoad = int(GetCpuPercent() * 100)
 	// 		}
 	// 		data := netdata.GenerateArray("system.cpu", cpuLoad, starttime, "system.cpu", "system.cpu")

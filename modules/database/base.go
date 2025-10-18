@@ -55,10 +55,9 @@ type DeviceInfo struct {
 }
 
 type Dev struct {
-	Password   string `json:"password"`
-	Key        string `json:"key"`
-	IP         string `json:"ip"`
-	RouterUnit bool   `json:"routerunit"`
+	Password string `json:"password"`
+	Key      string `json:"key"`
+	IP       string `json:"ip"`
 }
 
 // CheckDatabase checks the SQLite database file at the given path.

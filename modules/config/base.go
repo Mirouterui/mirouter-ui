@@ -15,11 +15,10 @@ import (
 )
 
 type Dev struct {
-	Password   string `mapstructure:"password"`
-	Key        string `mapstructure:"key"`
-	IP         string `mapstructure:"ip"`
-	RouterUnit bool   `mapstructure:"routerunit"`
-	IsLocal    bool   `mapstructure:"islocal"`
+	Password string `mapstructure:"password"`
+	Key      string `mapstructure:"key"`
+	IP       string `mapstructure:"ip"`
+	IsLocal  bool   `mapstructure:"islocal"`
 }
 
 type History struct {
@@ -29,18 +28,17 @@ type History struct {
 }
 
 type AppConfig struct {
-	Dev               []Dev   `mapstructure:"dev"`
-	History           History `mapstructure:"history"`
-	Debug             bool    `mapstructure:"debug"`
-	Port              int     `mapstructure:"port"`
-	Address           string  `mapstructure:"address"`
-	Tiny              bool    `mapstructure:"tiny"`
-	FlushTokenTime    int     `mapstructure:"flushTokenTime"`
-	Netdata_routernum int     `mapstructure:"netdata_routernum"`
-	Workdirectory     string  `mapstructure:"-"`
-	Databasepath      string  `mapstructure:"-"`
-	ApiKey            string  `mapstructure:"api_key"`
-	SafeMode          bool    `mapstructure:"safemode"`
+	Dev            []Dev   `mapstructure:"dev"`
+	History        History `mapstructure:"history"`
+	Debug          bool    `mapstructure:"debug"`
+	Port           int     `mapstructure:"port"`
+	Address        string  `mapstructure:"address"`
+	Tiny           bool    `mapstructure:"tiny"`
+	FlushTokenTime int     `mapstructure:"flushTokenTime"`
+	Workdirectory  string  `mapstructure:"-"`
+	Databasepath   string  `mapstructure:"-"`
+	ApiKey         string  `mapstructure:"api_key"`
+	SafeMode       bool    `mapstructure:"safemode"`
 }
 
 var (
@@ -71,11 +69,10 @@ func LoadConfig() (*AppConfig, error) {
 	// Set default values
 	v.SetDefault("dev", []Dev{
 		{
-			Password:   "",
-			Key:        "a2ffa5c9be07488bbb04a3a47d3c5f6a",
-			IP:         "192.168.31.1",
-			RouterUnit: false,
-			IsLocal:    false,
+			Password: "",
+			Key:      "a2ffa5c9be07488bbb04a3a47d3c5f6a",
+			IP:       "192.168.31.1",
+			IsLocal:  false,
 		},
 	})
 	v.SetDefault("history.enable", false)
@@ -85,7 +82,6 @@ func LoadConfig() (*AppConfig, error) {
 	v.SetDefault("port", 6789)
 	v.SetDefault("tiny", false)
 	v.SetDefault("flushTokenTime", 1800)
-	v.SetDefault("netdata_routernum", 0)
 	v.SetDefault("api_key", "")
 	v.SetDefault("safemode", true)
 	v.SetDefault("address", "0.0.0.0")
