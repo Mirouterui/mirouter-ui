@@ -88,7 +88,7 @@ func DownloadStatic(workdirectory string, force bool, checkupdate bool) error {
 }
 
 func downloadfile(directory string) {
-	resp, err := http.Get("http://mrui-api.hzchu.top/downloadstatic")
+	resp, err := http.Get("http://mrui-api.hzchu.top/v3/api/downloadstatic")
 	checkErr(err)
 	defer resp.Body.Close()
 
