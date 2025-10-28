@@ -29,7 +29,7 @@ func DownloadStatic(workdirectory string, force bool, checkupdate bool) error {
 
 	_, err := os.Stat(directory)
 	if os.IsNotExist(err) || force {
-		logrus.Info("Downloading static resources from 'Mirouterui/static'")
+		logrus.Info("Downloading static resources from 'Mirouterui/frontend'")
 		downloadfile(directory)
 		return nil
 	}
@@ -115,9 +115,9 @@ func unzip(src, dest string) error {
 		rc, err := f.Open()
 		checkErr(err)
 		fname := f.Name
-		if len(fname) > 26 {
-			fname = fname[26:]
-		}
+		// if len(fname) > 26 {
+		// 	fname = fname[26:]
+		// }
 		fpath := filepath.Join(dest, fname)
 
 		if !strings.HasPrefix(fpath, filepath.Clean(dest)+string(os.PathSeparator)) {
