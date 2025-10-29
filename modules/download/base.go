@@ -2,7 +2,6 @@ package download
 
 import (
 	"archive/zip"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -35,55 +34,56 @@ func DownloadStatic(workdirectory string, force bool, checkupdate bool) error {
 	}
 
 	// Read /static/version/index.html
-	f, err := os.Open(filepath.Join(directory, "version", "index.html"))
-	if err != nil {
-		logrus.Info("Failed to read static resource version, downloading again")
-		os.RemoveAll(directory)
-		downloadfile(directory)
-		return err
-	}
+	// f, err := os.Open(filepath.Join(directory, "version", "index.html"))
+	// if err != nil {
+	// 	logrus.Info("Failed to read static resource version, downloading again")
+	// 	os.RemoveAll(directory)
+	// 	downloadfile(directory)
+	// 	return err
+	// }
 
-	defer f.Close()
-	forntendVersion, err := io.ReadAll(f)
-	checkErr(err)
-	logrus.Info("Static resources already exist, version: " + string(forntendVersion))
+	// defer f.Close()
+	// forntendVersion, err := io.ReadAll(f)
+	// checkErr(err)
+	// logrus.Info("Static resources already exist, version: " + string(forntendVersion))
+	logrus.Info("Static resources already exist")
 
 	// Check for updates
-	if checkupdate {
-		resp, err := http.Get("https://mrui-api.hzchu.top/v3/api/checkupdate")
+	// if checkupdate {
+	// 	resp, err := http.Get("https://mrui-api.hzchu.top/v3/api/checkupdate")
 
-		if err != nil {
-			logrus.Info("Failed to get update information, skipping check")
-			return err
-		}
+	// 	if err != nil {
+	// 		logrus.Info("Failed to get update information, skipping check")
+	// 		return err
+	// 	}
 
-		defer resp.Body.Close()
-		body, err := io.ReadAll(resp.Body)
-		checkErr(err)
-		var result map[string]interface{}
-		json.Unmarshal(body, &result)
-		front := result["front"].(map[string]interface{})
-		frontversion := front["version"]
-		frontchangelog := front["changelog"]
+	// 	defer resp.Body.Close()
+	// 	body, err := io.ReadAll(resp.Body)
+	// 	checkErr(err)
+	// 	var result map[string]interface{}
+	// 	json.Unmarshal(body, &result)
+	// 	front := result["front"].(map[string]interface{})
+	// 	frontversion := front["version"]
+	// 	frontchangelog := front["changelog"]
 
-		backend := result["backend"].(map[string]interface{})
-		backendversion := backend["version"]
-		backendchangelog := front["changelog"]
+	// 	backend := result["backend"].(map[string]interface{})
+	// 	backendversion := backend["version"]
+	// 	backendchangelog := front["changelog"]
 
-		if backendversion != Version {
-			message := fmt.Sprintf("Backend program found new version (%v), please update. Changelog: %v", backendversion, backendchangelog)
-			logrus.Info(message)
-		}
+	// 	if backendversion != Version {
+	// 		message := fmt.Sprintf("Backend program found new version (%v), please update. Changelog: %v", backendversion, backendchangelog)
+	// 		logrus.Info(message)
+	// 	}
 
-		if frontversion != string(forntendVersion) {
-			message := fmt.Sprintf("Frontend files found new version (%v), update in the frontend page. Changelog: %v", frontversion, frontchangelog)
-			logrus.Info(message)
-			os.RemoveAll(directory)
-			downloadfile(directory)
-		}
-	} else {
-		logrus.Info("Skipping update check")
-	}
+	// 	if frontversion != string(forntendVersion) {
+	// 		message := fmt.Sprintf("Frontend files found new version (%v), update in the frontend page. Changelog: %v", frontversion, frontchangelog)
+	// 		logrus.Info(message)
+	// 		os.RemoveAll(directory)
+	// 		downloadfile(directory)
+	// 	}
+	// } else {
+	// 	logrus.Info("Skipping update check")
+	// }
 	return nil
 }
 
