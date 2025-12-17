@@ -200,6 +200,7 @@ func getRouterStats(routernum int, tokens map[int]string, ip string) (int, int, 
 	if tokens[routernum] == "" {
 		return 0, 0, 0, 0, 0, 0, 0, 0, []interface{}{}
 	}
+	// 需要添加token过期处理
 	url := fmt.Sprintf("http://%s/cgi-bin/luci/;stok=%s/api/misystem/status", ip, tokens[routernum])
 	resp, err := http.Get(url)
 	checkErr(err)

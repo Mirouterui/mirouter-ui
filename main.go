@@ -46,6 +46,7 @@ var (
 	safemode       bool
 	api_key        string
 	address        string
+	skipCheck      bool
 )
 
 type Config struct {
@@ -81,6 +82,7 @@ func init() {
 	hardwares = make(map[int]string)
 	isLocals = make(map[int]bool)
 	address = cfg.Address
+	skipCheck = cfg.SkipCheck
 	// go func() {
 	// 	logrus.Println(http.ListenAndServe(":6060", nil))
 	// }()
@@ -129,7 +131,7 @@ func getconfig(c *gin.Context) {
 
 func gettoken(dev []config.Dev) {
 	for i, d := range dev {
-		token, routerName, hardware := login.GetToken(d.Password, d.Key, d.IP)
+		token, routerName, hardware := login.GetToken(d.Password, d.Key, d.IP, skipCheck)
 		tokens[i] = token
 		routerNames[i] = routerName
 		hardwares[i] = hardware

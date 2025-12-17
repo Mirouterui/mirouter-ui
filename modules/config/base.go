@@ -39,6 +39,7 @@ type AppConfig struct {
 	Databasepath   string  `mapstructure:"-"`
 	ApiKey         string  `mapstructure:"api_key"`
 	SafeMode       bool    `mapstructure:"safemode"`
+	SkipCheck      bool    `mapstructure:"-"`
 }
 
 var (
@@ -50,6 +51,7 @@ var (
 	workdirectory   string
 	databasepath    string
 	autocheckupdate string
+	skipCheck       string
 )
 
 func init() {
@@ -58,6 +60,7 @@ func init() {
 	flag.StringVar(&workdirectory, "workdirectory", "", "working directory path")
 	flag.StringVar(&databasepath, "databasepath", filepath.Join(filepath.Dir(appPath), "database.db"), "database path")
 	flag.StringVar(&autocheckupdate, "autocheckupdate", "true", "auto check updates")
+	flag.StringVar(&skipCheck, "skip-check", "false", "skip router availability check")
 	flag.Parse()
 }
 
@@ -110,6 +113,7 @@ func LoadConfig() (*AppConfig, error) {
 
 	Cfg.Workdirectory = workdirectory
 	Cfg.Databasepath = databasepath
+	Cfg.SkipCheck, _ = strconv.ParseBool(skipCheck)
 
 	if len(Cfg.Dev) == 0 {
 		return nil, fmt.Errorf("router information not filled, please check config file")

@@ -100,18 +100,27 @@ func CheckRouterAvailability(ip string) bool {
 		Timeout: 5 * time.Second,
 	}
 
-	_, err := client.Get("http://" + ip)
-	if err != nil {
-		logrus.Info("Router " + ip + " is not available, please check configuration or router status")
-		return false
+	for i := range 5 {
+		_, err := client.Get("http://" + ip)
+		if err == nil {
+			return true
+		}
+		logrus.Info("Router " + ip + " is not available, retrying for " + fmt.Sprint(i+1) + " times... Error details:")
+		logrus.Info(err)
+		time.Sleep(2 * time.Second)
 	}
 
-	return true
+	return false
 }
-func GetToken(password string, key string, ip string) (string, string, string) {
+
+func GetToken(password string, key string, ip string, skipCheck bool) (string, string, string) {
 	logrus.Debug("Checking router availability...")
-	if !CheckRouterAvailability(ip) {
-		return "", "Router is not available", ""
+	if !skipCheck {
+		if !CheckRouterAvailability(ip) {
+			return "", "Router is not available", ""
+		}
+	} else {
+		logrus.Debug("Skipping router availability check.")
 	}
 	logrus.Debug("Getting router information...")
 	newEncryptMode, routername, hardware := getrouterinfo(ip)
