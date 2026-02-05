@@ -126,6 +126,13 @@ func GetToken(password string, key string, ip string, skipCheck bool) (string, s
 	newEncryptMode, routername, hardware := getrouterinfo(ip)
 	logrus.Info("Updating token...")
 	nonce := createNonce()
+
+	if password == "" {
+		logrus.Info("Password is empty, please check configuration")
+		time.Sleep(5 * time.Second)
+		os.Exit(1)
+	}
+
 	var hashedPassword string
 
 	if newEncryptMode {
